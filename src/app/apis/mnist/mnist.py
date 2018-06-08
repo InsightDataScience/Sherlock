@@ -13,12 +13,21 @@ import time
 from flask import Blueprint, request
 from flask import jsonify
 
+# michaniki modules
+from ...models.mnist import mnist
+
 blueprint = Blueprint('mnist', __name__)
 
 @blueprint.route('/predict', methods=['POST'])
 def run_mnist():
     # TO DO
     # load image and run MNIST model here
+    img = request.files['image']
+    
+    this_model = mnist()
+    out = this_model.predict(img)
+    
+    # response
     header = {
                 "module": "MNIST",
                 "service": "MNIST",
@@ -32,5 +41,5 @@ def run_mnist():
     
     return jsonify({
         "header": header,
-        "data": "MNIST prediction URL"
-        })
+        "data": out
+        }), 200
