@@ -1,9 +1,12 @@
+import redis
 from flask import Flask
 
-app = Flask(__name__)
+# TO DO Move to Settings
 
-# TO DO
-# add config here
-# app.config.from_object('config')
+app = Flask(__name__)
+db = redis.StrictRedis(host="localhost", port=6379,
+                       db=0)
+
+app.config.from_object('config')
 
 from apis import *

@@ -5,41 +5,87 @@ Flask API to run minst
 
 @author: runshengsong
 '''
+
+# TO DO
+# move to settings
+# data type
+IMAGE_WIDTH = 28
+IMAGE_HEIGHT = 28
+IMAGE_CHANS = 1
+IMAGE_DTYPE = "float32"
+
 # TO DO
 # move to helper
+from PIL import Image
+import json
+import numpy as np
+import uuid
+import os
+import io
 import uuid
 import time
 
-from flask import Blueprint, request
-from flask import jsonify
+# keras
+from keras.models import load_model
 
-# michaniki modules
-from ...models.mnist import mnist
+# flask
+from flask import jsonify
+from flask import Blueprint, request
+
+import helpers
+
+from app import app
+from app import db
+
+IMAGE_QUEUE = app.config['IMAGE_QUEUE']
+CLIENT_SLEEP = app.config['CLIENT_SLEEP']
+MNIST_PATH = app.config['MNIST_PATH']
 
 blueprint = Blueprint('mnist', __name__)
 
 @blueprint.route('/predict', methods=['POST'])
 def run_mnist():
-    # TO DO
-    # load image and run MNIST model here
+    """
+    Load all *.png files in a directory 
+    """
+    data = {"success": False}
+    
+    # load image
     img = request.files['image']
+    img = Image.open(img)
+    # pre-process
+    img = helpers.pre_process_image(img)
+    img = img.copy(order="C")
     
-    this_model = mnist()
-    out = this_model.predict(img)
+    # generate an ID for the classification then add the
+    # classification ID + image to the queue
+    this_id = str(uuid.uuid4())
+    image = helpers.base64_encode_image(img)
     
-    # response
-    header = {
-                "module": "MNIST",
-                "service": "MNIST",
-                "transId": str(int(round(time.time()))),
-                "created": time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()),
-                "organization": " ",
-                "requestDate": time.strftime("%m/%d/%Y"),
-                "transactionId": str(uuid.uuid1()),
-                "vmInstance": "" 
-            }
+    d = {"id": this_id, "image": image}
+    
+    # push the current id and image to redis
+    db.rpush(IMAGE_QUEUE, json.dumps(d))
+    
+    while True:
+        # try to get the prediction results
+        output = db.get(this_id)
+        
+        if output is not None:
+            # return it
+            output = output.decode('utf-8')
+            data["predictions"] = json.loads(output)
+            
+            # it is safe to delete the output from Redis now
+            db.delete(this_id)
+            break
+        
+        # if the output is not ready
+        # just wait a bit
+        time.sleep(CLIENT_SLEEP)
+    
+    data['success'] = True
     
     return jsonify({
-        "header": header,
-        "data": out
+        "data": data
         }), 200
