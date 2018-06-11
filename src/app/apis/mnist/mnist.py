@@ -7,14 +7,6 @@ Flask API to run minst
 '''
 
 # TO DO
-# move to settings
-# data type
-IMAGE_WIDTH = 28
-IMAGE_HEIGHT = 28
-IMAGE_CHANS = 1
-IMAGE_DTYPE = "float32"
-
-# TO DO
 # move to helper
 from PIL import Image
 import json
@@ -39,7 +31,6 @@ from app import db
 
 IMAGE_QUEUE = app.config['IMAGE_QUEUE']
 CLIENT_SLEEP = app.config['CLIENT_SLEEP']
-MNIST_PATH = app.config['MNIST_PATH']
 
 blueprint = Blueprint('mnist', __name__)
 
@@ -55,6 +46,7 @@ def run_mnist():
     img = Image.open(img)
     # pre-process
     img = helpers.pre_process_image(img)
+    print img.shape
     img = img.copy(order="C")
     
     # generate an ID for the classification then add the
@@ -62,6 +54,7 @@ def run_mnist():
     this_id = str(uuid.uuid4())
     image = helpers.base64_encode_image(img)
     
+    print len(image)
     d = {"id": this_id, "image": image}
     
     # push the current id and image to redis
@@ -82,6 +75,7 @@ def run_mnist():
         
         # if the output is not ready
         # just wait a bit
+        print "* Waiting....."
         time.sleep(CLIENT_SLEEP)
     
     data['success'] = True
