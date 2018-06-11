@@ -1,7 +1,7 @@
 # Michaniki
 
 TO DO:
-* Pull image from Redis DB and send to predictor.
+* Add Inception Model
 * Wrap everything in Docker + Docker compose
 
 ---
@@ -26,9 +26,15 @@ After done these run: ```python run_model.py``` under the `/src` folder. If you 
 
 Michaniki uses Flask + uWSGI and Python 2.7 as the scaffold for the web service.
 
-To start, run:
+* To start, run:
 ```uwsgi --ini uwsgi.ini```
 and go to `127.0.0.1/3031` you should see the welcome message
-and go to `127.0.0.1/3031/mnist/predict` you should see the outputs for the `MNIST` model. (NOT FINISHED YET)
 
+* Then, open another terminal, and start the inference server:
+```python models/mnist/mnist_model_server.py ```
 
+* To Test the MNIST model, run:
+```curl -X POST -F image=@models/_MNIST_/digits_num_0_label_2.png 'http://localhost:3031/mnist/predict'```
+
+You should see output:
+```{"data":{"predictions":[{"label":2}],"success":true}}```

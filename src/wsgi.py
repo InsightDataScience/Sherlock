@@ -1,6 +1,7 @@
-from app import app as michaniki
+from app import app
 
+print "* Starting web service..."
 if __name__ == "__main__":
-    print "* Starting web service..."
-    michaniki.run()
+    app.run()
+    
     
