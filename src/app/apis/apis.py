@@ -15,4 +15,4 @@ app.register_blueprint(mnist_blueprint, url_prefix = '/mnist')
 
 @app.route('/')
 def index():
-    return 'Welcome to michaniki'
+    return 'Welcome to Michaniki'

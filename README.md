@@ -1,7 +1,7 @@
 # Michaniki
 
 TO DO:
-* Let MNIST work [POST method]
+* Pull image from Redis DB and send to predictor.
 * Wrap everything in Docker + Docker compose
 
 ---
