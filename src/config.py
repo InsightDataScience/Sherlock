@@ -12,11 +12,8 @@ REDIS_PORT = env.str('REDIS_PORT', default = 6379)
 REDIS_DB = env.str('REDIS_DB', default = 0)
 
 # settings_for_MNIST
-IMAGE_QUEUE = env.str('IMAGE_QUEUE', default='image_queue')
-IMAGE_TYPE = env.str('IMAGE_TYPE', default='int8')
-IMAGE_WIDTH = env.str('IMAGE_WIDTH', default=28)
-IMAGE_HEIGHT = env.str('IMAGE_HEIGHT', default=28)
-BATCH_SIZE = env.str('BATCH_SIZE', default=32)
-SERVER_SLEEP = env.str('SERVER_SLEEP', default=0.5)
+MNIST_IMAGE_QUEUE = env.str('MNIST_IMAGE_QUEUE', default='mnist_image_queue')
 CLIENT_SLEEP = env.str('CLIENT_SLEEP', default=0.5)
-MNIST_MODEL_PATH = env.str('MNIST_MODEL_PATH', default=os.path.join("app", "models", "mnist", "mnist_baseline_less.h5"))
+
+# settings for InceptionV3
+INCEPTIONV3_IMAGE_QUEUE = env.str('INCEPTIONV3_IMAGE_QUEUE', default='inceptionV3_image_queue')
