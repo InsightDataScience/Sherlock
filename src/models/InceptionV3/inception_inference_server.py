@@ -3,11 +3,14 @@ Created on Jun 11, 2018
 
 @author: runshengsong
 '''
+import os
 import redis
 import time
 import json
 import numpy as np
+from functools import partial
 from rq import Queue
+from collections import defaultdict
 
 # inception helpers
 import helpers
@@ -22,77 +25,105 @@ from keras.applications import imagenet_utils
 db = redis.StrictRedis(host="localhost", port=6379,
                        db=0)
 
-def run_inceptionV3_model_server():
-    '''
-    run the inference server for Inception V3
+
+class inceptionV3_infernece_server:
+    def __init__(self):
+        # pre-load some models here on start
+        self.loaded_models = {}
     
-    Pull image from the Redis, decode 
-    send to the model, predict
-    return the response to the redis
-    
-    Images are tracked using is Image IDs
-    '''
-    print "* Loading InceptionV3 Model..."
-    try:
-        model = load_model(settings.InceptionV3_MODEL_PATH)
-    except:
-        model = keras.applications.inception_v3.InceptionV3(include_top=True, 
-                                                            weights='imagenet',
-                                                            classes=1000)
-        model.save(settings.InceptionV3_MODEL_PATH)
-    print "* InceptionV3 Model Loaded!"
-    
-    while True:
-        queue = db.lrange(settings.IMAGE_QUEUE, 0, settings.BATCH_SIZE)
-        imageIDs = []
-        batch = None
+    def run_inceptionV3_infernece_server(self):
+        '''
+        run the inference server for Inception V3
         
-        for q in queue:
-            q = json.loads(q.decode("utf-8"))
-            
-            # decode image 
-            this_image = helpers.base64_decode_image(q['image'], 
-                                                    settings.IMAGE_TYPE,
-                                                    shape = settings.IMAGE_SHAPE)
+        Pull image from the Redis, decode 
+        send to the model, predict
+        return the response to the redis
         
-            # stack up the image to the batch
-            if batch is None:
-                batch = this_image
-            else:
-                batch = np.vstack([batch, this_image])
-                
-            # add the image id
-            imageIDs.append(q['id'])
+        Images are tracked using is Image IDs
+        '''
+        while True:
+            queue = db.lrange(settings.IMAGE_QUEUE, 0, settings.BATCH_SIZE)
+            imageIDs = defaultdict(list)
+            batch_for_each_model = defaultdict(partial(np.ndarray, 0))
+            num_pic = 0
             
-        # if there is any images in the batch
-        if len(imageIDs) > 0:
-            print "* Batch size: {}".format(batch.shape)
-            preds = model.predict(batch)
-            results = imagenet_utils.decode_predictions(preds)
-            
-            # loop ever each image in the batch
-            for (each_id, each_result) in zip(imageIDs, results):
-                this_output = []
+            for q in queue:
+                q = json.loads(q.decode("utf-8"))
                 
-                # generate probability of top classes
-                for (image_net_id, label, prob) in each_result:
-                    r = {"label": label,
-                         "probability": float(prob)}
+                # decode image 
+                this_image = helpers.base64_decode_image(q['image'], 
+                                                        settings.IMAGE_TYPE,
+                                                        shape = settings.IMAGE_SHAPE)
+                
+                model_to_go = str(q['model_name'])
+                # stack up the image to the batch
+                # for each model
+                if batch_for_each_model[model_to_go].size == 0:
+                    # if it is a empty array
+                    batch_for_each_model[model_to_go] = this_image
+                else:
+                    # vstack on it
+                    batch_for_each_model[model_to_go] = np.vstack(batch_for_each_model[model_to_go],
+                                                                  this_image)
                     
-                    this_output.append(r)
+                # add the image id
+                imageIDs[model_to_go].append(q['id'])
+                num_pic += 1
                 
-                # add this result to the queue
-                # indexed by image id
-                db.set(each_id, json.dumps(this_output))
+            # if there is any images in the batch
+            if imageIDs:
+                print "* Predicting for {} of Models".format(len(imageIDs.keys()))
+                print "* Number of Picture: {}".format(num_pic)
+                
+                # loop over each model and predict their batch
+                for each_model_name, each_batch in batch_for_each_model.iteritems():
+                    this_ids = imageIDs[each_model_name] # these are the ids for the batch for this model
+                    
+                    # load model here
+                    # check the model if already exsit
+                    if each_model_name in self.loaded_models.keys():
+                        model = self.loaded_models[each_model_name]
+                        print "* Loaded {} Model from Mem....".format(each_model_name)
+                    else:
+                        # load a fresh new model
+                        print "* Loading {} Model...".format(each_model_name)
+                        model = load_model(os.path.join(settings.InceptionV3_MODEL_PATH, each_model_name, each_model_name+'.h5'))
+                        self.loaded_models[each_model_name] = model# save the model instance
+                        print "* {} Loaded and Saved in Mem.".format(each_model_name)
+                    
+                    # start predicting
+                    preds = model.predict(each_batch)
+                    
+                    # TO DO:
+                    # Decode prediction for different model instead of using 
+                    # the imagenet utils
+                    results = imagenet_utils.decode_predictions(preds)
+                    
+                    # loop ever each image in the batch
+                    for (each_id, each_result) in zip(this_ids, results):
+                        this_output = []
+                        
+                        # generate probability of top classes
+                        for (image_net_id, label, prob) in each_result:
+                            r = {"label": label,
+                                 "probability": float(prob)}
+                            
+                            this_output.append(r)
+                        
+                        # add this result to the queue
+                        # indexed by image id
+                        db.set(each_id, json.dumps(this_output))
+                        print "* Prediction for {} Sent Back!".format(each_model_name)
+                
+                # delete this image batch from the queue
+                # to save space
+                db.ltrim(settings.IMAGE_QUEUE, len(imageIDs), -1)
             
-            # delete this image batch from the queue
-            # to save space
-            db.ltrim(settings.IMAGE_QUEUE, len(imageIDs), -1)
-        
-        # sleep and wait
-        time.sleep(settings.SERVER_SLEEP)
+            # sleep and wait
+            time.sleep(settings.SERVER_SLEEP)
         
 if __name__ == "__main__":
-    run_inceptionV3_model_server()
+    this_server = inceptionV3_infernece_server()
+    this_server.run_inceptionV3_infernece_server()
     
             
