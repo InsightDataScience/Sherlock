@@ -9,6 +9,13 @@ import sys
 import base64
 import numpy as np
 
+import boto
+import os
+from boto.s3.key import Key
+from boto.exception import S3ResponseError
+
+DOWNLOAD_LOCATION_PATH = os.path.expanduser("~") + "/s3-backup/"
+
 def base64_encode_image(a):
     """
     encode the image
@@ -27,4 +34,13 @@ def base64_decode_image(a, dtype, shape):
 
     # return the decoded image
     return a
+
+def down_load_a_dir_from_s3(bucket_url, local):
+    """
+    download the folder from S3 
+    
+    local: /src/tmp/model_data/
+    """
+    pass
+    
     
