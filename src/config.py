@@ -16,5 +16,5 @@ MNIST_IMAGE_QUEUE = env.str('MNIST_IMAGE_QUEUE', default='mnist_image_queue')
 CLIENT_SLEEP = env.str('CLIENT_SLEEP', default=0.5)
 
 # settings for InceptionV3
-InceptionV3_TOPLESS_MODEL_PATH = env.str('InceptionV3_TOPLESS_MODEL_PATH', default=os.path.join("models", "InceptionV3", 'inceptionV3_topless.h5'))
+INCEPTIONV3_TOPLESS_MODEL_PATH = env.str('INCEPTIONV3_TOPLESS_MODEL_PATH', default=os.path.join("app", "models", "InceptionV3", "topless",'topless.h5'))
 INCEPTIONV3_IMAGE_QUEUE = env.str('INCEPTIONV3_IMAGE_QUEUE', default='inceptionV3_image_queue')
