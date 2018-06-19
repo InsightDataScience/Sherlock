@@ -1,3 +1,4 @@
+import os
 import redis
 from flask import Flask
 # from apis.mnist import mnist_model_server
@@ -6,8 +7,10 @@ from flask import Flask
 
 app = Flask(__name__)
 
-db = redis.StrictRedis(host="localhost", port=6379,
-                       db=0)
+# TO DO:
+# add to config.
+pool = redis.ConnectionPool(host='redis', port=6379, db=0)
+db = redis.Redis(connection_pool=pool)
 
 app.config.from_object('config')
 
