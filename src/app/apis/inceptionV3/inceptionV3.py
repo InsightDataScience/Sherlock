@@ -89,16 +89,21 @@ def init_new_model():
     # TO DO:
     # Celery Task
     # kick off the transfer learning thing here
-    new_model_path = os.path.join("app", "models", model_name)
-    if not os.path.exists(new_model_path):
-        os.makedirs(new_model_path)
+    new_model_folder_path = os.path.join("app", "models", "InceptionV3", model_name)
+    if not os.path.exists(new_model_folder_path):
+        os.makedirs(new_model_folder_path)
+    
     this_IV3_transfer = inceptionV3_transfer_retraining.InceptionTransferLeaner(model_name)
-    new_model = this_IV3_transfer.transfer_model(output_path, 
+    new_model, label_dict = this_IV3_transfer.transfer_model(output_path, 
                                      nb_epoch = INV3_TRANSFER_NB_EPOCH,
                                      batch_size = INV3_TRANSFER_BATCH_SIZE)
     
-    new_model_path = os.path.join(new_model_path, model_name + ".h5")
+    
+    # save the model .h5 file and the class label file
+    new_model_path = os.path.join(new_model_folder_path, model_name + ".h5")
+    new_label_path = os.path.join(new_model_folder_path, model_name + ".json")
     new_model.save(new_model_path)
+    helpers.save_classes_label_dict(label_dict, new_label_path)
     print "* Transfer: New Model Saved at: {}".format(new_model_path)
 
     return jsonify({
@@ -147,7 +152,7 @@ def run_inceptionV3():
             db.delete(this_id)
             break
         else:
-            print "* Waiting for the Inference Server..."
+#             print "* Waiting for the Inference Server..."
             time.sleep(CLIENT_SLEEP)
         
         data['success'] = True

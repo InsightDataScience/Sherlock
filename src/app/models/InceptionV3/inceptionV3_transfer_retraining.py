@@ -110,6 +110,10 @@ class InceptionTransferLeaner:
             batch_size=batch_size,
             )
         
+        # get the class and label name, reverse key and value pair
+        classes_label_dict = train_generator.class_indices
+        classes_label_dict = {v: k for k, v in classes_label_dict.iteritems()}
+        
         # add a new top layer base on the user data
         self.new_model = self.__add_new_last_layer(self.topless_model, nb_classes) 
         
@@ -140,8 +144,10 @@ class InceptionTransferLeaner:
                                          nb_val_samples=nb_val_samples,
                                          class_weight='auto')
         
+
+        
         # return the model
-        return self.new_model
+        return self.new_model, classes_label_dict
         
     def __setup_to_finetune(self, model, nb_layer_to_freeze):
         """

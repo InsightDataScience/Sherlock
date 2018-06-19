@@ -63,8 +63,8 @@ class inceptionV3_infernece_server:
                     batch_for_each_model[model_to_go] = this_image
                 else:
                     # vstack on it
-                    batch_for_each_model[model_to_go] = np.vstack(batch_for_each_model[model_to_go],
-                                                                  this_image)
+                    batch_for_each_model[model_to_go] = np.vstack([batch_for_each_model[model_to_go],
+                                                                  this_image])
                     
                 # add the image id
                 imageIDs[model_to_go].append(q['id'])
@@ -93,18 +93,17 @@ class inceptionV3_infernece_server:
                     
                     # start predicting
                     preds = model.predict(each_batch)
-                    
+    
                     # TO DO:
-                    # Decode prediction for different model instead of using 
-                    # the imagenet utils
-                    results = imagenet_utils.decode_predictions(preds)
+                    # Decode prediction to get the class label
+                    results = helpers.decode_pred_to_label(preds, each_model_name)
                     
                     # loop ever each image in the batch
                     for (each_id, each_result) in zip(this_ids, results):
                         this_output = []
                         
                         # generate probability of top classes
-                        for (image_net_id, label, prob) in each_result:
+                        for (label, prob) in each_result:
                             r = {"label": label,
                                  "probability": float(prob)}
                             
