@@ -5,10 +5,50 @@ Created on Jun 8, 2018
 '''
 # TO DO
 # move settings to config
+import os
 import sys
+import json
 import base64
 import numpy as np
 
+from collections import OrderedDict
+
+def decode_pred_to_label(preds, model_name):
+    """
+    decode the prediction batch prediction results 
+    to class label
+    """
+    class_label = OrderedDict()
+    json_file_path = os.path.join("app", "models", "InceptionV3", model_name, model_name + ".json")
+    with open(json_file_path, 'r') as fp:
+        class_label = json.load(fp)
+    class_label = {int(k): str(v) for k,v in class_label.iteritems()}
+    
+    # sort the prob from high to low
+    batch_output = []
+    for each_image_pred in preds:
+        print each_image_pred
+        this_image_result = []
+        # get the index base on the prob from high to low
+        this_classes = np.argsort(each_image_pred)[::-1]
+        this_prob = np.sort(each_image_pred)[::-1]
+        
+        # map classes number to label
+        print this_classes
+        print this_prob
+        this_labels = map(class_label.get, this_classes)
+        for i in range(0, len(this_labels)):
+            one_lable = this_labels[i]
+            one_prob = this_prob[i]
+            this_image_result.append([one_lable, one_prob])
+        
+        # append the results of this image back to batch results
+        batch_output.append(this_image_result)
+    
+    return batch_output
+            
+        
+    
 def pre_process_image(img):
     """
     format the images 

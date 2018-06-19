@@ -7,6 +7,7 @@ Created on Jun 8, 2018
 # move settings to config
 import os
 import sys
+import json
 import boto3
 import base64
 import numpy as np
@@ -30,6 +31,15 @@ def base64_decode_image(a, dtype, shape):
     # return the decoded image
     return a
 
+def save_classes_label_dict(label_dict, file_path_name):
+    """
+    save the class label dictionary to json
+    """
+    with open(file_path_name, 'w') as fp:
+        json.dump(label_dict, fp)
+    
+    print "* Helper: Classes Label Json Saved"
+    
 def download_a_dir_from_s3(bucket_name, bucket_prefix, local_path):
     """
     download the folder from S3 

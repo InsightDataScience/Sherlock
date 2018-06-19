@@ -1,6 +1,6 @@
 import os
 
-InceptionV3_MODEL_PATH = os.path.join("models", "InceptionV3")
+InceptionV3_MODEL_PATH = os.path.join("app", "models", "InceptionV3")
 BATCH_SIZE = 32
 IMAGE_QUEUE = 'inceptionV3_image_queue'
 IMAGE_TYPE = 'float32'
