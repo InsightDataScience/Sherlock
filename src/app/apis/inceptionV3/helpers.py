@@ -39,7 +39,7 @@ def save_classes_label_dict(label_dict, file_path_name):
         json.dump(label_dict, fp)
     
     print "* Helper: Classes Label Json Saved"
-    
+
 def download_a_dir_from_s3(bucket_name, bucket_prefix, local_path):
     """
     download the folder from S3 

@@ -1,0 +1,49 @@
+version: '3'
+
+services:
+  michaniki_client:
+    build: ./src
+    ports:
+      - "3031:3031"
+    environment:
+      - PORT=3031
+      - FLAS_APP=app/__init__.py
+      - FLASK_DEBUG=1
+      - REDIS_URL="redis://redis"
+      - REDIS_PORT=6379
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+    volumes:
+      - ./src:/opt/src
+    command: ./entryPoint.sh
+    depends_on:
+      - redis
+    networks:
+      - michaniki
+
+  inference_server:
+    build: ./src
+    environment:
+      - REDIS_URL="redis://redis"
+      - REDIS_PORT=6379
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+    command: ['python', 'app/models/InceptionV3/inception_inference_server.py']
+    volumes:
+      - ./src:/opt/src
+    networks:
+      - michaniki
+    depends_on:
+      - michaniki_client
+      - redis
+
+  redis:
+    image: redis:4.0.5-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    hostname: redis
+    networks:
+      - michaniki
+      
+networks:
+    michaniki:
+    

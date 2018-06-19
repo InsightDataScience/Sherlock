@@ -22,9 +22,10 @@ from keras.models import load_model
 from keras.preprocessing import image
 from keras.applications import imagenet_utils
 
-db = redis.StrictRedis(host="localhost", port=6379,
-                       db=0)
-
+# db = redis.StrictRedis(host="redis://redis", port=6379,
+#                        db=0)
+pool = redis.ConnectionPool(host='redis', port=6379, db=0)
+db = redis.Redis(connection_pool=pool)
 
 class inceptionV3_infernece_server:
     def __init__(self):
