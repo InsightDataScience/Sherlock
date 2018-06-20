@@ -19,7 +19,7 @@ else:
 if os.path.exists(TOPLESS_MODEL_PATH):
     print "* Starting: Found Topless Model."
 else:
-    os.mkdirs(TOPLESS_MODEL_PATH)
+    os.makedirs(TOPLESS_MODEL_PATH)
     print "* Starting: No Topless Model Found. Loading..."
     base_model = keras.applications.inception_v3.InceptionV3(include_top=False, 
                                                     weights='imagenet',

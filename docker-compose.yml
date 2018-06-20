@@ -59,18 +59,7 @@ services:
     hostname: redis
     networks:
       - michaniki
-      
-  rabbit_broker:
-    hostname: rabbit_broker
-    image: rabbitmq:latest
-    ports:
-      - "5673:5672"
-    environment:
-      - RABBITMQ_DEFAULT_USER=admin
-      - RABBITMQ_DEFAULT_PASS=mypass
-    networks:
-      - michaniki
-  
+        
 networks:
     michaniki:
     
