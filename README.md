@@ -3,6 +3,10 @@ Michaniki is a web platform that allows user to create a image classifier for cu
 
 Michaniki is currently serveing as RESTful APIs without front-end UI.
 
+TO DO:
+* put trainer to celery worker
+* test the retraining API
+
 ---
 ## Development
 Everything is wrapped in Docker, here are the core packages used in *Michaniki*.
@@ -12,6 +16,9 @@ Everything is wrapped in Docker, here are the core packages used in *Michaniki*.
 * Docker (built on 17.12.0-ce)
 * Docker Compose (1.18.0)
 * Keras + Tensorflow
+
+## Transfer Learning Explained
+*Michaniki* does transfer learning and fine-tuning (two steps) on pre-trained deep CNNs using customize images. If you just want to setup *Michaniki*, skip to the next section.
 
 ## Setup environment
 #### 1. Install Docker:
@@ -151,9 +158,9 @@ The model name *base* is used to refer to the basic InceptionV3 model.
 
 The folder name you give to *YOUR_MODEL_NAME* will be used to identify this model once it get trained.
 
-The name of train and val folders **can't be changed**. The folder names for different classes will be used as the label of the class, you can create any amount of class folders as you want
+The name of train and val folders **can't be changed**. The folder names for different classes will be used as the label of the class, you can create any amount of class folders as you want.
 
-**The S3 folders should have public access permission**
+**The S3 folders should have public access permission**.
 
 To call this API, do:
 ```bash
