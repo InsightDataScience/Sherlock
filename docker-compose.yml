@@ -51,7 +51,7 @@ services:
       - DB_USERNAME=root
       - DB_PASSWORD=michaniki
       - DB_NAME=michanikidb
-      - BROKER_URL=pyamqp://guest:cliccky@rabbit_broker:5672/clicc
+      - BROKER_URL=redis://redis:6379/0
   
   redis:
     image: redis:4.0.5-alpine
