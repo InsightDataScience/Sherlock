@@ -18,3 +18,9 @@ app.register_blueprint(incept_blueprint, url_prefix = '/inceptionV3')
 @app.route('/')
 def index():
     return 'Welcome to Michaniki'
+
+@app.route('/add')
+def add_a():
+    res = add.delay(3, 4)
+    
+    
