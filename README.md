@@ -1,5 +1,5 @@
 # Michaniki
-Michaniki is a web platform that allows user to create a image classifier for custom images, based on pre-trained CNN models. It also allows to use the customized CNN to pre-label images, and re-train the customized CNN when more training data become avaliable.n
+Michaniki is a web platform that allows user to create a image classifier for custom images, based on pre-trained CNN models. It also allows to use the customized CNN to pre-label images, and re-train the customized CNN when more training data become avaliable.
 
 Michaniki is currently serveing as RESTful APIs without front-end UI.
 
@@ -37,17 +37,17 @@ sudo chmod +x /usr/local/bin/docker-compose
 On Mac:
 The package of Docker-CE for Mac already come with docker compose.
 
-#### Install Git:
+#### 3. Install Git:
 [Install git](https://git-scm.com/downloads) for the appropriate system, if you don't have yet.
 
 ## Build and Start *Michaniki*
-#### Clone the repo:
+#### 1. Clone the repo:
 
 ```bash
 git clone https://github.com/InsightDataCommunity/Michaniki
 ```
 
-#### Export Your AWS Credentials to Host Environment.
+#### 2. Export Your AWS Credentials to Host Environment.
 *Michaniki* needs to access S3 for customized images. You should create an IAM user at [AWS](https://aws.amazon.com/), if you don't yet have an AWS account, create one.
 
 Then, export credentials to your local environment:
@@ -65,7 +65,7 @@ echo $AWS_SECRET_ACCESS_KEY
 
 Docker will access these environment variables and load them to docker.
 
-#### Start the Docker Containers:
+#### 3. Start the Docker Containers:
 move to the directory where you cloned *Michaniki* , and run:
 ```bash
 docker-compose up --build
@@ -98,10 +98,10 @@ Then *michaniki* is ready for you.
 ## Use *Michaniki*:
 *Michaniki* currently provides 3 major APIs. To test *Michaniki*, I recommend to test the APIs using [POSTMAN](https://www.getpostman.com/), while the examples below are in terminal, using `cURL`
 
-#### 0. Welcome Page
+#### 1. Welcome Page
 If *Michaniki* is running correctly, go to `http://127.0.0.1:3031/` in your web browser, you should see the welcome message of *Michaniki*.
 
-#### 1. Predict a Image with InceptionV3
+#### 2. Predict a Image with InceptionV3
 *Michaniki* can classify any image to ImageNet labels using a pre-trained InceptionV3 CNN:
 
 ```bash
@@ -133,24 +133,25 @@ The model name *base* is used to refer to the basic InceptionV3 model.
 			...
 ```
 
-#### 2. Create a New Classifier Using Custom Image Dataset:
+#### 3. Create a New Classifier Using Custom Image Dataset:
 *Michaniki* can do transfer learning on the pre-trained InceptionV3 CNN (without the top layer), and create a new CNN for users' image dataset.
 
 **The new image dataset should be stored at S3 first, with the directory architecture in S3 should look like this**:
 ```
 .
-+-- YOUR_BUCKET_NAME
-|   +-- YOUR_MODEL_NAME
-|   	+-- train
-|			+-- class1
-|			+-- class2
-|			...
-|		+-- val
-|			+-- class1
-|			+-- class2
-|			...
+├── YOUR_BUCKET_NAME
+│   ├── YOUR_MODEL_NAME
+│   	├── train
+│   		├── class1
+│   		├── class2
+│   	├── val
+│   		├── class1
+│   		├── class2
 ```
+
 The folder name you give to *YOUR_MODEL_NAME* will be used to identify this model once it get trained.
+
+**The name of train and val folders can't be changed**. **The folder names for different classes will be used as the label of the class, you can create any amount of class folders as you want**
 
 To call this API, do:
 ```bash
@@ -164,5 +165,5 @@ curl -X POST \
 ```
 *Michaniki* will use the provided images to create a new model to classify the classes you provided in the S3 folder. Once the transfer learning is done, you can use the new model to label images by pass **YOUR_MODEL_NAME** to the inference API desribed eariler.
 
-#### 3. Resume training on existing model:
+#### 4. Resume training on existing model:
 
