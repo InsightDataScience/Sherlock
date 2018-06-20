@@ -151,7 +151,9 @@ The model name *base* is used to refer to the basic InceptionV3 model.
 
 The folder name you give to *YOUR_MODEL_NAME* will be used to identify this model once it get trained.
 
-**The name of train and val folders can't be changed**. **The folder names for different classes will be used as the label of the class, you can create any amount of class folders as you want**
+The name of train and val folders **can't be changed**. The folder names for different classes will be used as the label of the class, you can create any amount of class folders as you want
+
+**The S3 folders should have public access permission**
 
 To call this API, do:
 ```bash
