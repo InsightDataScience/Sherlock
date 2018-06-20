@@ -9,6 +9,8 @@ CLIENT_SLEEP = env.str('CLIENT_SLEEP', default=0.5)
 # settings for InceptionV3
 INCEPTIONV3_TOPLESS_MODEL_PATH = env.str('INCEPTIONV3_TOPLESS_MODEL_PATH', default=os.path.join("app", "models", "InceptionV3", "topless",'topless.h5'))
 INCEPTIONV3_IMAGE_QUEUE = env.str('INCEPTIONV3_IMAGE_QUEUE', default='inceptionV3_image_queue')
+INV3_TRANSFER_NB_EPOCH = env.str('INV3_TRANSFER_NB_EPOCH', default=3)
+INV3_TRANSFER_BATCH_SIZE = env.str('INV3_TRANSFER_BATCH_SIZE', default=2)
 
 # setting for mysql db
 # parsed from environment variables

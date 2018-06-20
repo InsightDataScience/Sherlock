@@ -17,6 +17,10 @@ from keras.preprocessing.image import ImageDataGenerator
 
 import settings
 
+from app import app
+
+TOPLESS_MODEL_PATH = app.config['INCEPTIONV3_TOPLESS_MODEL_PATH']
+
 class InceptionRetrainer:
     def __init__(self, model_name):
         self.model_name = model_name
@@ -63,13 +67,14 @@ class InceptionTransferLeaner:
         # the creation of the model directory should be handled
         # in the API
         try:
-            self.topless_model = load_model('./topless/topless.h5')
+            print "* Transfer: Loading Topless Model..."
+            self.topless_model = load_model(TOPLESS_MODEL_PATH)
         except IOError:
             # load model from keras
             self.topless_model = InceptionV3(include_top=False, 
                                             weights='imagenet',
                                             input_shape=(299, 299, 3))
-        
+            
         self.new_model = None # init the new model
 
     def transfer_model(self, local_dir,
