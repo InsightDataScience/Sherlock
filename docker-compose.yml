@@ -36,7 +36,23 @@ services:
     depends_on:
       - michaniki_client
       - redis
-
+  
+  celery_worker:
+    build: ./src
+    command: ['celery', '-A', 'app.celeryapp:michaniki_celery_app', 'worker', '-l', 'info']
+    volumes:
+      - ./src:/opt/src
+    networks:
+      - michaniki
+    depends_on:
+      - michaniki_client
+    environment:
+      - DB_HOST=db
+      - DB_USERNAME=root
+      - DB_PASSWORD=michaniki
+      - DB_NAME=michanikidb
+      - BROKER_URL=pyamqp://guest:cliccky@rabbit_broker:5672/clicc
+  
   redis:
     image: redis:4.0.5-alpine
     command: ["redis-server", "--appendonly", "yes"]
@@ -44,6 +60,17 @@ services:
     networks:
       - michaniki
       
+  rabbit_broker:
+    hostname: rabbit_broker
+    image: rabbitmq:latest
+    ports:
+      - "5673:5672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=mypass
+    networks:
+      - michaniki
+  
 networks:
     michaniki:
     
