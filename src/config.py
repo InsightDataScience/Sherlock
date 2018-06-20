@@ -17,4 +17,7 @@ DB_PORT = env.int('DB_PORT', default=3306)
 DB_USERNAME = env.str('DB_USERNAME', default='root')
 DB_PASSWORD = env.str('DB_PASSWORD', default='michaniki')
 DB_NAME = env.str('DB_NAME', default='michanikidb')
-BROKER_URL = env.str('BROKER_URL', default='localhost')
+
+# redis url for celery
+BROKER_URL = env.str('BROKER_URL', default='redis://redis:6379/0')
+BACKEND_URL = env.str('BACKEND_URL', default='redis://redis:6379/0')
