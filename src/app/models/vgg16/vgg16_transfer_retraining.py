@@ -11,7 +11,7 @@ import keras
 from keras.models import Model
 from keras.optimizers import SGD
 from keras.models import load_model
-from keras.applications.inception_v3 import InceptionV3, preprocess_input
+from keras.applications.vgg16 import VGG16, preprocess_input
 from keras.layers import Dense, GlobalAveragePooling2D
 from keras.preprocessing.image import ImageDataGenerator
 
@@ -19,9 +19,10 @@ import settings
 
 from app import app
 
-TOPLESS_MODEL_PATH = app.config['INCEPTIONV3_TOPLESS_MODEL_PATH']
+TOPLESS_MODEL_PATH = app.config['VGG16_TOPLESS_MODEL_PATH']
+PATH_TO_SAVE_MODELS = app.config['PATH_TO_SAVE_MODELS']
 
-class InceptionRetrainer:
+class Vgg16Retrainer:
     def __init__(self, model_name):
         self.model_name = model_name
         
@@ -29,13 +30,15 @@ class InceptionRetrainer:
         """
         retrain the model
         """
-        model_path = os.path.join(model_name, model_name + '.h5')
+        model_path = os.path.join(PATH_TO_SAVE_MODELS, model_name, model_name + '.h5')
+        
+        print "* Re-trainer: Loading Model {}...".format(self.model_name)
         # load the model
         this_model = load_model(model_path)
         
         # load the training data
-        train_dir = os.path.join(local_dir, "train")
-        val_dir = os.path.join(local_dir, "val")
+        train_dir = os.path.join(local_data_path, "train")
+        val_dir = os.path.join(local_data_path, "val")
         
         # set up parameters
         nb_train_samples = self.__get_nb_files(train_dir)
@@ -43,6 +46,28 @@ class InceptionRetrainer:
         nb_val_samples = self.__get_nb_files(val_dir)
         nb_epoch = int(nb_epoch)
         batch_size = int(batch_size)
+        
+        # data prep
+        train_datagen =  ImageDataGenerator(
+            preprocessing_function = preprocess_input
+          )
+        
+        val_datagen = ImageDataGenerator(
+            preprocessing_function=preprocess_input
+            )
+        
+        # load training and validation data
+        print "* Re-trainer: Loading Training and Validation Data..."
+        train_generator = train_datagen.flow_from_directory(
+            train_dir,
+            target_size=(224, 224),
+            batch_size=batch_size)
+        
+        validation_generator = val_datagen.flow_from_directory(
+            val_dir,
+            target_size=(224, 224),
+            batch_size=batch_size,
+            )
         
         # retrain the model
         this_model.fit_generator(train_generator,
@@ -52,15 +77,9 @@ class InceptionRetrainer:
                                  nb_val_samples=nb_val_samples,
                                  class_weight='auto')
         
-        # TO DO:
-        # consider concurrent
-        # in the inference server, since the models are loaded first
-        # in memory, I can deal with the new models there
-        # save the model
-        # replace the current model
-        this_model.save(model_path)
+        return this_model, model_path
           
-class InceptionTransferLeaner:
+class Vgg16TransferLeaner:
     def __init__(self, model_name):
         self.model_name = model_name
         
@@ -71,9 +90,9 @@ class InceptionTransferLeaner:
             self.topless_model = load_model(TOPLESS_MODEL_PATH)
         except IOError:
             # load model from keras
-            self.topless_model = InceptionV3(include_top=False, 
+            self.topless_model = VGG16(include_top=False, 
                                             weights='imagenet',
-                                            input_shape=(299, 299, 3))
+                                            input_shape=(224, 224, 3))
             
         self.new_model = None # init the new model
 
@@ -81,7 +100,7 @@ class InceptionTransferLeaner:
                        nb_epoch,
                        batch_size):
         """
-        transfer the topless InceptionV3 model
+        transfer the topless Vgg16 model
         to classify new classes
         """
         train_dir = os.path.join(local_dir, "train")
@@ -106,12 +125,12 @@ class InceptionTransferLeaner:
         # generator
         train_generator = train_datagen.flow_from_directory(
             train_dir,
-            target_size=(299, 299),
+            target_size=(224, 224),
             batch_size=batch_size)
         
         validation_generator = val_datagen.flow_from_directory(
             val_dir,
-            target_size=(299, 299),
+            target_size=(224, 224),
             batch_size=batch_size,
             )
         
@@ -131,11 +150,12 @@ class InceptionTransferLeaner:
         # TO DO:
         # celery tasks
         history_tl = self.new_model.fit_generator(train_generator,
-                                         nb_epoch=nb_epoch,
-                                         samples_per_epoch=nb_train_samples,
+                                         steps_per_epoch=nb_train_samples//batch_size,
+                                         epochs=nb_epoch,
                                          validation_data=validation_generator,
-                                         nb_val_samples=nb_val_samples,
-                                         class_weight='auto')
+                                         validation_steps=nb_val_samples//batch_size,
+                                         class_weight='auto',
+                                         verbose=1)
         
         # set up fine-tuning model
         self.__setup_to_finetune(self.new_model, nb_layer_to_freeze=10)
@@ -143,21 +163,20 @@ class InceptionTransferLeaner:
         print "* Transfer: Starting Fine-Tuning..."
         # train the new model again to fine-tune it
         history_ft = self.new_model.fit_generator(train_generator,
-                                         samples_per_epoch=nb_train_samples,
-                                         nb_epoch=nb_epoch,
+                                         steps_per_epoch=nb_train_samples//batch_size,
+                                         epochs=nb_epoch,
                                          validation_data=validation_generator,
-                                         nb_val_samples=nb_val_samples,
-                                         class_weight='auto')
-        
+                                         validation_steps=nb_val_samples//batch_size,
+                                         class_weight='auto',
+                                         verbose=1)
 
-        
         # return the model
         return self.new_model, classes_label_dict
         
     def __setup_to_finetune(self, model, nb_layer_to_freeze):
         """
         Freeze the bottom NB_IV3_LAYERS and retrain the remaining top layers.
-        note: NB_IV3_LAYERS corresponds to the top 2 inception blocks in the inceptionv3 arch
+        note: NB_IV3_LAYERS corresponds to the top 2 vgg blocks in the vgg16 arch
         Args:
         model: keras model
         """

@@ -2,15 +2,15 @@ import os
 import redis
 from envparse import env
 
-# settings_for_MNIST
-MNIST_IMAGE_QUEUE = env.str('MNIST_IMAGE_QUEUE', default='mnist_image_queue')
 CLIENT_SLEEP = env.str('CLIENT_SLEEP', default=0.5)
 
+PATH_TO_SAVE_MODELS = env.str('PATH_TO_SAVE_MODELS', default=os.path.join("app", "models", "vgg16"))
+
 # settings for InceptionV3
-INCEPTIONV3_TOPLESS_MODEL_PATH = env.str('INCEPTIONV3_TOPLESS_MODEL_PATH', default=os.path.join("app", "models", "InceptionV3", "topless",'topless.h5'))
-INCEPTIONV3_IMAGE_QUEUE = env.str('INCEPTIONV3_IMAGE_QUEUE', default='inceptionV3_image_queue')
-INV3_TRANSFER_NB_EPOCH = env.str('INV3_TRANSFER_NB_EPOCH', default=3)
-INV3_TRANSFER_BATCH_SIZE = env.str('INV3_TRANSFER_BATCH_SIZE', default=2)
+VGG16_TOPLESS_MODEL_PATH = env.str('VGG16_TOPLESS_MODEL_PATH', default=os.path.join("app", "models", "vgg16", "topless",'topless.h5'))
+VGG16_IMAGE_QUEUE = env.str('VGG16_IMAGE_QUEUE', default='vgg16_image_queue')
+VGG16_TRANSFER_NB_EPOCH = env.str('VGG16_TRANSFER_NB_EPOCH', default=3)
+VGG16_TRANSFER_BATCH_SIZE = env.str('VGG16_TRANSFER_BATCH_SIZE', default=2)
 
 # setting for mysql db
 # parsed from environment variables

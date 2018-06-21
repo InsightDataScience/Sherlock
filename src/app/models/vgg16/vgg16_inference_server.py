@@ -12,8 +12,8 @@ from functools import partial
 from rq import Queue
 from collections import defaultdict
 
-# inception helpers
-import INV3_helpers
+# vgg16 helpers
+import vgg16_helpers
 import settings
 
 # Keras
@@ -27,14 +27,14 @@ from keras.applications import imagenet_utils
 pool = redis.ConnectionPool(host='redis', port=6379, db=0)
 db = redis.Redis(connection_pool=pool)
 
-class inceptionV3_infernece_server:
+class vgg16_infernece_server:
     def __init__(self):
         # pre-load some models here on start
         self.loaded_models = {}
     
-    def run_inceptionV3_infernece_server(self):
+    def run_vgg16_infernece_server(self):
         '''
-        run the inference server for Inception V3
+        run the inference server for VGG16
         
         Pull image from the Redis, decode 
         send to the model, predict
@@ -52,7 +52,7 @@ class inceptionV3_infernece_server:
                 q = json.loads(q.decode("utf-8"))
                 
                 # decode image 
-                this_image = INV3_helpers.base64_decode_image(q['image'], 
+                this_image = vgg16_helpers.base64_decode_image(q['image'], 
                                                         settings.IMAGE_TYPE,
                                                         shape = settings.IMAGE_SHAPE)
                 
@@ -88,7 +88,7 @@ class inceptionV3_infernece_server:
                     else:
                         # load a fresh new model
                         print "* Loading {} Model...".format(each_model_name)
-                        model = load_model(os.path.join(settings.InceptionV3_MODEL_PATH, each_model_name, each_model_name+'.h5'))
+                        model = load_model(os.path.join(settings.VGG16_MODEL_PATH, each_model_name, each_model_name+'.h5'))
                         self.loaded_models[each_model_name] = model# save the model instance
                         print "* {} Loaded and Saved in Mem.".format(each_model_name)
                     
@@ -97,7 +97,7 @@ class inceptionV3_infernece_server:
     
                     # TO DO:
                     # Decode prediction to get the class label
-                    results = INV3_helpers.decode_pred_to_label(preds, each_model_name)
+                    results = vgg16_helpers.decode_pred_to_label(preds, each_model_name)
                     
                     # loop ever each image in the batch
                     for (each_id, each_result) in zip(this_ids, results):
@@ -123,7 +123,7 @@ class inceptionV3_infernece_server:
             time.sleep(settings.SERVER_SLEEP)
         
 if __name__ == "__main__":
-    this_server = inceptionV3_infernece_server()
-    this_server.run_inceptionV3_infernece_server()
+    this_server = vgg16_infernece_server()
+    this_server.run_vgg16_infernece_server()
     
             

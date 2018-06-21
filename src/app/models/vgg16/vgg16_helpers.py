@@ -19,7 +19,7 @@ def decode_pred_to_label(preds, model_name):
     to class label
     """
     class_label = OrderedDict()
-    json_file_path = os.path.join("app", "models", "InceptionV3", model_name, model_name + ".json")
+    json_file_path = os.path.join("app", "models", "vgg16", model_name, model_name + ".json")
     with open(json_file_path, 'r') as fp:
         class_label = json.load(fp)
     class_label = {int(k): str(v) for k,v in class_label.iteritems()}
@@ -34,8 +34,6 @@ def decode_pred_to_label(preds, model_name):
         this_prob = np.sort(each_image_pred)[::-1]
         
         # map classes number to label
-        print this_classes
-        print this_prob
         this_labels = map(class_label.get, this_classes)
         for i in range(0, len(this_labels)):
             one_lable = this_labels[i]
@@ -47,8 +45,6 @@ def decode_pred_to_label(preds, model_name):
     
     return batch_output
             
-        
-    
 def pre_process_image(img):
     """
     format the images 

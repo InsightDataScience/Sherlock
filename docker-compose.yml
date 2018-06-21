@@ -28,7 +28,7 @@ services:
       - REDIS_PORT=6379
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-    command: ['python', 'app/models/InceptionV3/inception_inference_server.py']
+    command: ['python', 'app/models/vgg16/vgg16_inference_server.py']
     volumes:
       - ./src:/opt/src
     networks:
