@@ -36,14 +36,30 @@ services:
     depends_on:
       - michaniki_client
       - redis
-
+  
+  celery_worker:
+    build: ./src
+    command: ['celery', '-A', 'app.celeryapp:michaniki_celery_app', 'worker', '-l', 'info']
+    volumes:
+      - ./src:/opt/src
+    networks:
+      - michaniki
+    depends_on:
+      - michaniki_client
+    environment:
+      - DB_HOST=db
+      - DB_USERNAME=root
+      - DB_PASSWORD=michaniki
+      - DB_NAME=michanikidb
+      - BROKER_URL=redis://redis:6379/0
+  
   redis:
     image: redis:4.0.5-alpine
     command: ["redis-server", "--appendonly", "yes"]
     hostname: redis
     networks:
       - michaniki
-      
+        
 networks:
     michaniki:
     
