@@ -13,7 +13,7 @@ from rq import Queue
 from collections import defaultdict
 
 # inception helpers
-import helpers
+import INV3_helpers
 import settings
 
 # Keras
@@ -52,7 +52,7 @@ class inceptionV3_infernece_server:
                 q = json.loads(q.decode("utf-8"))
                 
                 # decode image 
-                this_image = helpers.base64_decode_image(q['image'], 
+                this_image = INV3_helpers.base64_decode_image(q['image'], 
                                                         settings.IMAGE_TYPE,
                                                         shape = settings.IMAGE_SHAPE)
                 
@@ -97,7 +97,7 @@ class inceptionV3_infernece_server:
     
                     # TO DO:
                     # Decode prediction to get the class label
-                    results = helpers.decode_pred_to_label(preds, each_model_name)
+                    results = INV3_helpers.decode_pred_to_label(preds, each_model_name)
                     
                     # loop ever each image in the batch
                     for (each_id, each_result) in zip(this_ids, results):

@@ -14,6 +14,8 @@ import io
 import uuid
 import time
 
+import celery
+
 # keras
 from keras.models import load_model
 from keras.preprocessing import image
@@ -23,22 +25,15 @@ from keras_applications import inception_v3
 from flask import jsonify
 from flask import Blueprint, request
 
-import helpers
+import API_helpers
 
 from app import app
 from app import db
 
 # michaniki app
-from ...models.InceptionV3 import inceptionV3_transfer_retraining
+from ...tasks import *
 
 blueprint = Blueprint('inceptionV3', __name__)
-
-INCEPTIONV3_IMAGE_QUEUE = app.config['INCEPTIONV3_IMAGE_QUEUE']
-CLIENT_SLEEP = app.config['CLIENT_SLEEP']
-INCEPTIONV3_TOPLESS_MODEL_PATH = app.config['INCEPTIONV3_TOPLESS_MODEL_PATH']
-INV3_TRANSFER_NB_EPOCH = 3
-INV3_TRANSFER_BATCH_SIZE = 2
-
 
 @blueprint.route('/retrain', methods=['POST'])
 def retrain():
@@ -54,16 +49,28 @@ def retrain():
     local_data_path = os.path.join('/tmp/model_data/', model_name)
 
     # download the folder in the url
-    helpers.download_a_dir_from_s3(bucket_url, local = local_data_path)
+    API_helpers.download_a_dir_from_s3(bucket_url, local = local_data_path)
     
-    # TO DO:
-    # Celery task
-    # kick off the retraining service
-    inceptionV3_transfer_retraining.InceptionRetrainer(model_name)
-    
-    return jsonify({
-        "status": "success"
-    }), 200
+    try:
+        # kick off the retraining service in celery worker
+        inceptionV3_transfer_retraining.InceptionRetrainer(model_name)
+        
+        # TO DO:
+        # Working on the re-traning 
+        # Put to celery worker
+        
+        # delete the image folder
+        shutil.rmtree(local_data_path, ignore_errors=True)
+        
+        return jsonify({
+            "status": "success"
+        }), 200
+    except Exception as err:
+        # delete the image folder
+        shutil.rmtree(local_data_path, ignore_errors=True)
+        return jsonify({
+            "status": str(err)
+            }), 500
     
 @blueprint.route('/transfer', methods=['POST'])
 def init_new_model():
@@ -81,34 +88,22 @@ def init_new_model():
     
     local_data_path = os.path.join('./tmp')
     
+    # generate a celery task id
+    this_id = celery.uuid()
+
     # download the folder in the url
-    output_path = helpers.download_a_dir_from_s3(bucket_name = s3_bucket_name,
+    output_path = API_helpers.download_a_dir_from_s3(bucket_name = s3_bucket_name,
                                     bucket_prefix = s3_bucket_prefix,
                                     local_path = local_data_path)
-    
-    # TO DO:
-    # Celery Task
-    # kick off the transfer learning thing here
-    new_model_folder_path = os.path.join("app", "models", "InceptionV3", model_name)
-    if not os.path.exists(new_model_folder_path):
-        os.makedirs(new_model_folder_path)
-    
-    this_IV3_transfer = inceptionV3_transfer_retraining.InceptionTransferLeaner(model_name)
-    new_model, label_dict = this_IV3_transfer.transfer_model(output_path, 
-                                     nb_epoch = INV3_TRANSFER_NB_EPOCH,
-                                     batch_size = INV3_TRANSFER_BATCH_SIZE)
-    
-    
-    # save the model .h5 file and the class label file
-    new_model_path = os.path.join(new_model_folder_path, model_name + ".h5")
-    new_label_path = os.path.join(new_model_folder_path, model_name + ".json")
-    new_model.save(new_model_path)
-    helpers.save_classes_label_dict(label_dict, new_label_path)
-    print "* Transfer: New Model Saved at: {}".format(new_model_path)
 
+    # kick off the transfer learning thing here
+    async_transfer.apply_async((model_name, output_path, this_id), task_id=this_id)
+    
     return jsonify({
-        "status": "success"
+        "task_id": this_id,
+        "status": "Transfer Learning and Fine-Tuning are Initiated"
     }), 200
+
     
 @blueprint.route('/predict', methods=['POST'])
 def run_inceptionV3():
@@ -132,7 +127,7 @@ def run_inceptionV3():
     x = x.copy(order="C")
     
     # encode
-    x = helpers.base64_encode_image(x)
+    x = API_helpers.base64_encode_image(x)
     # create a image id
     this_id = str(uuid.uuid4())
     

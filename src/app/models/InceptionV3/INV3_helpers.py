@@ -27,12 +27,15 @@ def decode_pred_to_label(preds, model_name):
     # sort the prob from high to low
     batch_output = []
     for each_image_pred in preds:
+        print each_image_pred
         this_image_result = []
         # get the index base on the prob from high to low
         this_classes = np.argsort(each_image_pred)[::-1]
         this_prob = np.sort(each_image_pred)[::-1]
         
         # map classes number to label
+        print this_classes
+        print this_prob
         this_labels = map(class_label.get, this_classes)
         for i in range(0, len(this_labels)):
             one_lable = this_labels[i]
@@ -44,6 +47,8 @@ def decode_pred_to_label(preds, model_name):
     
     return batch_output
             
+        
+    
 def pre_process_image(img):
     """
     format the images 
