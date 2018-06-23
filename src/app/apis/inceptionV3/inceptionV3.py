@@ -19,7 +19,7 @@ import celery
 # keras
 from keras.models import load_model
 from keras.preprocessing import image
-from keras_applications import inception_v3
+from keras.applications.inception_v3 import InceptionV3, preprocess_input
 
 # flask
 from flask import jsonify
@@ -123,7 +123,7 @@ def run_inceptionV3():
     img = request.files['image']
     img = image.load_img(img, target_size = (299, 299))
     x = np.expand_dims(image.img_to_array(img), axis=0)
-    x = inception_v3.preprocess_input(x)
+    x = preprocess_input(x)
     x = x.copy(order="C")
     
     # encode
