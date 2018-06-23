@@ -27,7 +27,6 @@ def decode_pred_to_label(preds, model_name):
     # sort the prob from high to low
     batch_output = []
     for each_image_pred in preds:
-        print each_image_pred
         this_image_result = []
         # get the index base on the prob from high to low
         this_classes = np.argsort(each_image_pred)[::-1]
