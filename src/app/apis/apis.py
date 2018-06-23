@@ -8,7 +8,7 @@ define blueprints here
 from flask import Flask
 
 from .mnist import blueprint as mnist_blueprint
-from .inceptionV3 import blueprint as incept_blueprint
+from .InceptionV3 import blueprint as incept_blueprint
 
 from app import app
 
