@@ -86,8 +86,8 @@ simplegeneric==0.8.1
 singledispatch==3.4.0.3
 six==1.11.0
 subprocess32==3.5.1
-tensorboard==1.5.0
-tensorflow==1.8.0
+tensorboard==1.8.0
+tensorflow==1.5.0
 termcolor==1.1.0
 tornado==5.0.2
 traitlets==4.3.2
