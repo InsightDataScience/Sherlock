@@ -4,7 +4,7 @@ Michaniki is a web platform that allows user to create a image classifier for cu
 Michaniki is currently serveing as RESTful APIs without front-end UI.
 
 TO DO:
-* put trainer to celery worker
+* put image loader to celery worker
 * test the retraining API
 
 ---
