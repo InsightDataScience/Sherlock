@@ -50,7 +50,7 @@ def retrain():
     batch_size = request.form.get('batch_size')
     
     model_name = s3_bucket_prefix.split('/')[-1]
-    local_data_path = os.path.join('/tmp/model_data/', model_name)
+    local_data_path = os.path.join('./tmp')
     
     # create a celer task id
     this_id = celery.uuid()
