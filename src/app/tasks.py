@@ -7,6 +7,8 @@ import os
 import time
 import shutil
 
+from keras.models import load_model
+
 from app import app
 
 from .apis.InceptionV3 import API_helpers
@@ -18,6 +20,46 @@ INV3_TRANSFER_BATCH_SIZE = app.config['INV3_TRANSFER_BATCH_SIZE']
 INCEPTIONV3_IMAGE_QUEUE = app.config['INCEPTIONV3_IMAGE_QUEUE']
 INCEPTIONV3_TOPLESS_MODEL_PATH = app.config['INCEPTIONV3_TOPLESS_MODEL_PATH']
 
+@michaniki_celery_app.task()
+def async_retrain(model_name,
+                  local_data_path,
+                  s3_bucket_name,
+                  s3_bucket_prefix,
+                  nb_epoch,
+                  batch_size,
+                  id):
+    """
+    retrain model
+    resume training
+    """    
+    try:
+        # download image data to local 
+        image_data_path = API_helpers.download_a_dir_from_s3(s3_bucket_name,
+                                                     s3_bucket_prefix, 
+                                                     local_path = local_data_path)
+        
+        this_model_path = os.path.join("app", "models", "InceptionV3", model_name, model_name + ".h5")
+        # load the model
+        this_model = load_model(this_model_path)
+        
+        this_retrainer = inceptionV3_transfer_retraining.InceptionRetrainer(model_name)
+        
+        # return the retraiend new model
+        new_model = this_retrainer.retrain(this_model,
+                                           image_data_path, 
+                                           nb_epoch, 
+                                           batch_size)
+        
+        # replace the current model
+        new_model.save(this_model_path)
+        
+        # remove the local image path
+        shutil.rmtree(image_data_path, ignore_errors=True)
+    except Exception as err:
+        # remove the local image path
+#         shutil.rmtree(image_data_path, ignore_errors=True)
+        raise
+    
 @michaniki_celery_app.task()
 def async_transfer(model_name, output_path, id):
     """
