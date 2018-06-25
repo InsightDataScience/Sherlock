@@ -72,15 +72,8 @@ class InceptionRetrainer:
                                  validation_data=validation_generator,
                                  nb_val_samples=nb_val_samples//batch_size,
                                  class_weight='auto',
-                                 verbose=2)
-        
-        # TO DO:
-        # consider concurrent
-        # in the inference server, since the models are loaded first
-        # in memory, I can deal with the new models there
-        # save the model
-        # replace the current model
-        
+                                 verbose=1)
+
         return this_model
         this_model.save(model_path)
         
