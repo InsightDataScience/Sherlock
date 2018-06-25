@@ -47,6 +47,8 @@ services:
     depends_on:
       - michaniki_client
     environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - DB_HOST=db
       - DB_USERNAME=root
       - DB_PASSWORD=michaniki

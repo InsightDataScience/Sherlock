@@ -44,34 +44,30 @@ def retrain():
     @args: train_bucket_url: URL pointing to the folder for training data on S3
     @args: model_name: the name of the model want to be retraiend, the folder must be exsit
     """
-    bucket_url = request.form.get('train_bucket_url')
-    model_name = request.form.get('model_name')
+    s3_bucket_name = request.form.get('train_bucket_name')
+    s3_bucket_prefix = request.form.get('train_bucket_prefix')
+    nb_epoch = request.form.get('nb_epoch')
+    batch_size = request.form.get('batch_size')
+    
+    model_name = s3_bucket_prefix.split('/')[-1]
     local_data_path = os.path.join('/tmp/model_data/', model_name)
-
+    
+    # create a celer task id
+    this_id = celery.uuid()
     # download the folder in the url
-    API_helpers.download_a_dir_from_s3(bucket_url, local = local_data_path)
-    
-    try:
-        # kick off the retraining service in celery worker
-        inceptionV3_transfer_retraining.InceptionRetrainer(model_name)
-        
-        # TO DO:
-        # Working on the re-traning 
-        # Put to celery worker
-        
-        # delete the image folder
-        shutil.rmtree(local_data_path, ignore_errors=True)
-        
-        return jsonify({
-            "status": "success"
-        }), 200
-    except Exception as err:
-        # delete the image folder
-        shutil.rmtree(local_data_path, ignore_errors=True)
-        return jsonify({
-            "status": str(err)
-            }), 500
-    
+    # return the path of the image files
+    async_retrain.apply_async((model_name, 
+                               local_data_path,
+                               s3_bucket_name,
+                               s3_bucket_prefix,
+                               nb_epoch,
+                               batch_size,
+                               this_id), task_id=this_id)
+
+    return jsonify({
+        "status": "success"
+    }), 200
+
 @blueprint.route('/transfer', methods=['POST'])
 def init_new_model():
     """

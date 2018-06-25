@@ -25,14 +25,14 @@ class InceptionRetrainer:
     def __init__(self, model_name):
         self.model_name = model_name
         
-    def retrain(self, local_data_path, nb_epoch, batch_size):
+    def retrain(self, 
+                this_model, 
+                local_dir, 
+                nb_epoch, 
+                batch_size):
         """
         retrain the model
         """
-        model_path = os.path.join(model_name, model_name + '.h5')
-        # load the model
-        this_model = load_model(model_path)
-        
         # load the training data
         train_dir = os.path.join(local_dir, "train")
         val_dir = os.path.join(local_dir, "val")
@@ -44,13 +44,35 @@ class InceptionRetrainer:
         nb_epoch = int(nb_epoch)
         batch_size = int(batch_size)
         
+        # set up image data
+        train_datagen =  ImageDataGenerator(
+            preprocessing_function = preprocess_input
+          )
+        
+        val_datagen = ImageDataGenerator(
+            preprocessing_function=preprocess_input
+            )
+        
+        # generator
+        train_generator = train_datagen.flow_from_directory(
+            train_dir,
+            target_size=(299, 299),
+            batch_size=batch_size)
+        
+        validation_generator = val_datagen.flow_from_directory(
+            val_dir,
+            target_size=(299, 299),
+            batch_size=batch_size,
+            )
+        
         # retrain the model
         this_model.fit_generator(train_generator,
                                  nb_epoch=nb_epoch,
-                                 samples_per_epoch=nb_train_samples,
+                                 samples_per_epoch=nb_train_samples//batch_size,
                                  validation_data=validation_generator,
-                                 nb_val_samples=nb_val_samples,
-                                 class_weight='auto')
+                                 nb_val_samples=nb_val_samples//batch_size,
+                                 class_weight='auto',
+                                 verbose=2)
         
         # TO DO:
         # consider concurrent
@@ -58,7 +80,19 @@ class InceptionRetrainer:
         # in memory, I can deal with the new models there
         # save the model
         # replace the current model
+        
+        return this_model
         this_model.save(model_path)
+        
+    def __get_nb_files(self, directory):
+        """Get number of files by searching local dir recursively"""
+        if not os.path.exists(directory):
+            return 0
+        cnt = 0
+        for r, dirs, files in os.walk(directory):
+            for dr in dirs:
+                cnt += len(glob.glob(os.path.join(r, dr + "/*")))
+        return cnt
           
 class InceptionTransferLeaner:
     def __init__(self, model_name):
@@ -132,10 +166,11 @@ class InceptionTransferLeaner:
         # celery tasks
         history_tl = self.new_model.fit_generator(train_generator,
                                          nb_epoch=nb_epoch,
-                                         samples_per_epoch=nb_train_samples,
+                                         samples_per_epoch=nb_train_samples//batch_size,
                                          validation_data=validation_generator,
-                                         nb_val_samples=nb_val_samples,
-                                         class_weight='auto')
+                                         nb_val_samples=nb_val_samples//batch_size,
+                                         class_weight='auto',
+                                         verbose=2)
         
         # set up fine-tuning model
         self.__setup_to_finetune(self.new_model, nb_layer_to_freeze=10)
@@ -143,14 +178,13 @@ class InceptionTransferLeaner:
         print "* Transfer: Starting Fine-Tuning..."
         # train the new model again to fine-tune it
         history_ft = self.new_model.fit_generator(train_generator,
-                                         samples_per_epoch=nb_train_samples,
                                          nb_epoch=nb_epoch,
+                                         samples_per_epoch=nb_train_samples//batch_size,
                                          validation_data=validation_generator,
-                                         nb_val_samples=nb_val_samples,
-                                         class_weight='auto')
-        
+                                         nb_val_samples=nb_val_samples//batch_size,
+                                         class_weight='auto',
+                                         verbose=2)
 
-        
         # return the model
         return self.new_model, classes_label_dict
         
