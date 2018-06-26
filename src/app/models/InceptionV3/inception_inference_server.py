@@ -97,7 +97,7 @@ class inceptionV3_infernece_server:
     
                     # TO DO:
                     # Decode prediction to get the class label
-                    results = INV3_helpers.decode_pred_to_label(preds, each_model_name)
+                    results = INV3_helpers.decode_pred_to_label(preds, each_model_name, num_return = settings.NUM_LABEL_TO_RETURN)
                     
                     # loop ever each image in the batch
                     for (each_id, each_result) in zip(this_ids, results):
