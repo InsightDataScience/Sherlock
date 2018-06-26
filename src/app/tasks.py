@@ -19,10 +19,10 @@ INV3_TRANSFER_NB_EPOCH = app.config['INV3_TRANSFER_NB_EPOCH']
 INV3_TRANSFER_BATCH_SIZE = app.config['INV3_TRANSFER_BATCH_SIZE']
 INCEPTIONV3_IMAGE_QUEUE = app.config['INCEPTIONV3_IMAGE_QUEUE']
 INCEPTIONV3_TOPLESS_MODEL_PATH = app.config['INCEPTIONV3_TOPLESS_MODEL_PATH']
+TEMP_FOLDER = os.path.join('./tmp')
 
 @michaniki_celery_app.task()
 def async_retrain(model_name,
-                  local_data_path,
                   s3_bucket_name,
                   s3_bucket_prefix,
                   nb_epoch,
@@ -32,12 +32,11 @@ def async_retrain(model_name,
     retrain model
     resume training
     """    
-    try:
-        # download image data to local 
-        image_data_path = API_helpers.download_a_dir_from_s3(s3_bucket_name,
+    # download image data to local 
+    image_data_path = API_helpers.download_a_dir_from_s3(s3_bucket_name,
                                                      s3_bucket_prefix, 
-                                                     local_path = local_data_path)
-        
+                                                     local_path = TEMP_FOLDER)
+    try:
         this_model_path = os.path.join("app", "models", "InceptionV3", model_name, model_name + ".h5")
         # load the model
         this_model = load_model(this_model_path)
@@ -50,6 +49,7 @@ def async_retrain(model_name,
                                            nb_epoch, 
                                            batch_size)
         
+        print "* Celery Transfer: Retrained Model Saved at: {}".format(this_model_path)
         # replace the current model
         new_model.save(this_model_path)
         
@@ -61,7 +61,10 @@ def async_retrain(model_name,
         raise
     
 @michaniki_celery_app.task()
-def async_transfer(model_name, output_path, id):
+def async_transfer(model_name,
+                s3_bucket_name,
+                s3_bucket_prefix,
+                id):
     """
     do transfer learning
     """
@@ -69,10 +72,14 @@ def async_transfer(model_name, output_path, id):
     new_model_folder_path = os.path.join("app", "models", "InceptionV3", model_name)
     if not os.path.exists(new_model_folder_path):
         os.makedirs(new_model_folder_path)
+    
+    image_data_path = API_helpers.download_a_dir_from_s3(bucket_name = s3_bucket_name,
+                                    bucket_prefix = s3_bucket_prefix,
+                                    local_path = TEMP_FOLDER)
     try:
         # init the transfer learning manager
         this_IV3_transfer = inceptionV3_transfer_retraining.InceptionTransferLeaner(model_name)
-        new_model, label_dict = this_IV3_transfer.transfer_model(output_path, 
+        new_model, label_dict = this_IV3_transfer.transfer_model(image_data_path, 
                                          nb_epoch = INV3_TRANSFER_NB_EPOCH,
                                          batch_size = INV3_TRANSFER_BATCH_SIZE)
         
@@ -84,10 +91,10 @@ def async_transfer(model_name, output_path, id):
         print "* Celery Transfer: New Model Saved at: {}".format(new_model_path)
         
         # delete the image folder here:
-        shutil.rmtree(output_path, ignore_errors=True)
+        shutil.rmtree(image_data_path, ignore_errors=True)
     except Exception as err:
         # catch any error
         shutil.rmtree(new_model_folder_path, ignore_errors=True)
-        shutil.rmtree(output_path, ignore_errors=True)
+        shutil.rmtree(image_data_path, ignore_errors=True)
         raise
         
