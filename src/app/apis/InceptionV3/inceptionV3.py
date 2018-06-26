@@ -60,7 +60,7 @@ def label():
     all_pred = []
 
     for each_image in glob.glob(image_data_path + "/*.*"):
-        iamge_name = each_image.split('/')[-1]
+        iamge_name = each_image
         this_img = image.load_img(each_image, target_size = (299, 299))
         
         # image pre-processing
