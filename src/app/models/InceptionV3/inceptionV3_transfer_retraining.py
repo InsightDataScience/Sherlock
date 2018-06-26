@@ -19,7 +19,7 @@ import settings
 
 from app import app
 
-TOPLESS_MODEL_PATH = app.config['INCEPTIONV3_TOPLESS_MODEL_PATH']
+INCEPTIONV3_TOPLESS_MODEL_PATH = app.config['INCEPTIONV3_TOPLESS_MODEL_PATH']
 
 class InceptionRetrainer:
     def __init__(self, model_name):
@@ -90,14 +90,14 @@ class InceptionRetrainer:
 class InceptionTransferLeaner:
     def __init__(self, model_name):
         self.model_name = model_name
-        
         # the creation of the model directory should be handled
         # in the API
         try:
             print "* Transfer: Loading Topless Model..."
-            self.topless_model = load_model(TOPLESS_MODEL_PATH)
+            self.topless_model = load_model(INCEPTIONV3_TOPLESS_MODEL_PATH)
         except IOError:
             # load model from keras
+            print "* Transfer: Loading Topless Model from Keras..."
             self.topless_model = InceptionV3(include_top=False, 
                                             weights='imagenet',
                                             input_shape=(299, 299, 3))

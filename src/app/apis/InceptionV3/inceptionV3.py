@@ -65,9 +65,10 @@ def retrain():
                                this_id), task_id=this_id)
 
     return jsonify({
-        "status": "success"
+        "task_id": this_id,
+        "status": "Retraining and Fine-Tuning are Initiated"
     }), 200
-
+    
 @blueprint.route('/transfer', methods=['POST'])
 def init_new_model():
     """
@@ -77,29 +78,24 @@ def init_new_model():
     @args: train_bucket_url: URL pointing to the folder for training data on S3
     """
     # need to load the base model here
- 
     s3_bucket_name = request.form.get('train_bucket_name')
     s3_bucket_prefix = request.form.get('train_bucket_prefix')
     model_name = s3_bucket_prefix.split('/')[-1]
-    
-    local_data_path = os.path.join('./tmp')
     
     # generate a celery task id
     this_id = celery.uuid()
 
     # download the folder in the url
-    output_path = API_helpers.download_a_dir_from_s3(bucket_name = s3_bucket_name,
-                                    bucket_prefix = s3_bucket_prefix,
-                                    local_path = local_data_path)
-
     # kick off the transfer learning thing here
-    async_transfer.apply_async((model_name, output_path, this_id), task_id=this_id)
+    async_transfer.apply_async((model_name, 
+                                s3_bucket_name,
+                                s3_bucket_prefix,
+                                this_id), task_id=this_id)
     
     return jsonify({
         "task_id": this_id,
         "status": "Transfer Learning and Fine-Tuning are Initiated"
     }), 200
-
     
 @blueprint.route('/predict', methods=['POST'])
 def run_inceptionV3():
