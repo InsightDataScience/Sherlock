@@ -60,7 +60,7 @@ def label():
     all_pred = []
 
     for each_image in glob.glob(image_data_path + "/*.*"):
-        iamge_name = each_image
+        iamge_name = each_image.split('/')[-1]
         this_img = image.load_img(each_image, target_size = (299, 299))
         
         # image pre-processing
@@ -72,7 +72,7 @@ def label():
         x = API_helpers.base64_encode_image(x)
         # create a image id
         this_id = str(uuid.uuid4())
-        all_image_ids.append((this_id, each_image))
+        all_image_ids.append((this_id, iamge_name))
         d = {"id": this_id, "image": x, "model_name": model_name}
         
         # push to the redis queue
@@ -89,7 +89,7 @@ def label():
             output = db.get(this_id)
 
             if output is not None:
-                this_pred["image name"] = iamge_name
+                this_pred["image name"] = this_image_name
                 output = output.decode('utf-8')
                 this_pred["prediction"] = json.loads(output)
                 
