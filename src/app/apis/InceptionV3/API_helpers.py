@@ -7,10 +7,13 @@ Created on Jun 8, 2018
 # move settings to config
 import os
 import sys
+import glob
 import json
 import boto3
 import base64
 import numpy as np
+
+from keras.preprocessing import image
 
 def base64_encode_image(a):
     """
@@ -70,5 +73,8 @@ def download_a_dir_from_s3(bucket_name, bucket_prefix, local_path):
             
     print "* Helper: Images Loaded at: {}".format(output_path)
     return output_path
+
+
+    
     
     

@@ -13,8 +13,9 @@ import os
 import io
 import uuid
 import time
-
 import celery
+import glob
+import shutil
 
 # keras
 from keras.models import load_model
@@ -33,8 +34,79 @@ from app import db
 # michaniki app
 from ...tasks import *
 
+# temp folder save image files downloaded from S3
+TEMP_FOLDER = os.path.join('./tmp')
+
 blueprint = Blueprint('inceptionV3', __name__)
 
+@blueprint.route('/label', methods=['POST'])
+def label():
+    """
+    given a folder in S3 bucket
+    label all images in it.
+    """
+    s3_bucket_name = request.form.get('s3_bucket_name')
+    s3_bucket_prefix = request.form.get('s3_bucket_prefix')
+    model_name = request.form.get('model_name')
+    
+    # load image from s3
+    image_data_path = API_helpers.download_a_dir_from_s3(s3_bucket_name,
+                                                     s3_bucket_prefix, 
+                                                     local_path = TEMP_FOLDER)
+    
+    # for each images in the folder
+    # supports .png and .jpg
+    all_image_ids = []
+    all_pred = []
+
+    for each_image in glob.glob(image_data_path + "/*.*"):
+        iamge_name = each_image.split('/')[-1]
+        this_img = image.load_img(each_image, target_size = (299, 299))
+        
+        # image pre-processing
+        x = np.expand_dims(image.img_to_array(this_img), axis=0)
+        x = preprocess_input(x)
+        x = x.copy(order="C")
+        
+        # encode
+        x = API_helpers.base64_encode_image(x)
+        # create a image id
+        this_id = str(uuid.uuid4())
+        all_image_ids.append((this_id, each_image))
+        d = {"id": this_id, "image": x, "model_name": model_name}
+        
+        # push to the redis queue
+        db.rpush(INCEPTIONV3_IMAGE_QUEUE, json.dumps(d))
+    
+    all_pred = []
+    while all_image_ids:
+        # pop the first one from the queue
+        this_id, this_image_name = all_image_ids.pop(0)
+        this_pred = {}
+        
+        while True:
+            # check if the response has been returned
+            output = db.get(this_id)
+
+            if output is not None:
+                this_pred["image name"] = iamge_name
+                output = output.decode('utf-8')
+                this_pred["prediction"] = json.loads(output)
+                
+                db.delete(this_id)
+                break
+            else:
+                time.sleep(CLIENT_SLEEP)
+                
+        all_pred.append(this_pred)
+    
+    # remove the temp folder
+    shutil.rmtree(image_data_path, ignore_errors=True)
+    
+    return jsonify({
+        "data": all_pred
+        })   
+        
 @blueprint.route('/retrain', methods=['POST'])
 def retrain():
     """

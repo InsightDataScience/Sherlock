@@ -13,10 +13,12 @@ import numpy as np
 
 from collections import OrderedDict
 
-def decode_pred_to_label(preds, model_name):
+def decode_pred_to_label(preds, model_name, num_return):
     """
     decode the prediction batch prediction results 
     to class label
+    
+    num_return: control the number of label to return
     """
     class_label = OrderedDict()
     json_file_path = os.path.join("app", "models", "InceptionV3", model_name, model_name + ".json")
@@ -24,6 +26,7 @@ def decode_pred_to_label(preds, model_name):
         class_label = json.load(fp)
     class_label = {int(k): str(v) for k,v in class_label.iteritems()}
     
+    num_label = len(class_label)
     # sort the prob from high to low
     batch_output = []
     for each_image_pred in preds:
@@ -32,6 +35,11 @@ def decode_pred_to_label(preds, model_name):
         this_classes = np.argsort(each_image_pred)[::-1]
         this_prob = np.sort(each_image_pred)[::-1]
         
+        # trunct the list
+        if num_return < num_label:
+            this_classes = this_classes[:num_return]
+            this_prob = this_prob[:num_return]
+
         # map classes number to label
         this_labels = map(class_label.get, this_classes)
         for i in range(0, len(this_labels)):
