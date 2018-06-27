@@ -18,11 +18,23 @@ def task_info():
         this_task = michaniki_celery_app.AsyncResult(each_id)
         this_status = str(this_task.state)
         
-        task_results.append({
-            "remote_task_id": each_id,
-            "status": this_status
-            })
-    
+        if this_status == "SUCCESS":
+            # get the training and validation acc
+            this_res = this_task.get()
+        
+            task_results.append({
+                "remote_task_id": each_id,
+                "status": this_status,
+                "final training accuracy": float(this_res[0]),
+                "final validation accuracy": float(this_res[1]),
+                })
+        else:
+            # FAILD or PENDING
+            task_results.append({
+                "remote_task_id": each_id,
+                "status": this_status,
+                })
+            
     return jsonify(
         {"Tasks Status": task_results}
         )
