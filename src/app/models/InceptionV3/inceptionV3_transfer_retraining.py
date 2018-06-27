@@ -66,7 +66,7 @@ class InceptionRetrainer:
             )
         
         # retrain the model
-        this_model.fit_generator(train_generator,
+        retrain_history = this_model.fit_generator(train_generator,
                                  nb_epoch=nb_epoch,
                                  samples_per_epoch=nb_train_samples//batch_size,
                                  validation_data=validation_generator,
@@ -74,8 +74,7 @@ class InceptionRetrainer:
                                  class_weight='auto',
                                  verbose=1)
 
-        return this_model
-        this_model.save(model_path)
+        return this_model, retrain_history
         
     def __get_nb_files(self, directory):
         """Get number of files by searching local dir recursively"""
@@ -179,7 +178,7 @@ class InceptionTransferLeaner:
                                          verbose=2)
 
         # return the model
-        return self.new_model, classes_label_dict
+        return self.new_model, classes_label_dict, history_ft
         
     def __setup_to_finetune(self, model, nb_layer_to_freeze):
         """

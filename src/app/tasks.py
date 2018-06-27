@@ -44,7 +44,7 @@ def async_retrain(model_name,
         this_retrainer = inceptionV3_transfer_retraining.InceptionRetrainer(model_name)
         
         # return the retraiend new model
-        new_model = this_retrainer.retrain(this_model,
+        new_model, history = this_retrainer.retrain(this_model,
                                            image_data_path, 
                                            nb_epoch, 
                                            batch_size)
@@ -55,9 +55,13 @@ def async_retrain(model_name,
         
         # remove the local image path
         shutil.rmtree(image_data_path, ignore_errors=True)
+        
+        final_trn_acc = history.history['acc'][-1]
+        final_val_acc = history.history['val_acc'][-1]
+        return final_trn_acc, final_val_acc
     except Exception as err:
         # remove the local image path
-#         shutil.rmtree(image_data_path, ignore_errors=True)
+        shutil.rmtree(image_data_path, ignore_errors=True)
         raise
     
 @michaniki_celery_app.task()
@@ -79,7 +83,7 @@ def async_transfer(model_name,
     try:
         # init the transfer learning manager
         this_IV3_transfer = inceptionV3_transfer_retraining.InceptionTransferLeaner(model_name)
-        new_model, label_dict = this_IV3_transfer.transfer_model(image_data_path, 
+        new_model, label_dict, history = this_IV3_transfer.transfer_model(image_data_path, 
                                          nb_epoch = INV3_TRANSFER_NB_EPOCH,
                                          batch_size = INV3_TRANSFER_BATCH_SIZE)
         
@@ -92,9 +96,16 @@ def async_transfer(model_name,
         
         # delete the image folder here:
         shutil.rmtree(image_data_path, ignore_errors=True)
+        
+        # return the train and val acc:
+        final_trn_acc = history.history['acc'][-1]
+        final_val_acc = history.history['val_acc'][-1]
+        return final_trn_acc, final_val_acc
+    
     except Exception as err:
         # catch any error
         shutil.rmtree(new_model_folder_path, ignore_errors=True)
         shutil.rmtree(image_data_path, ignore_errors=True)
         raise
+    
         
