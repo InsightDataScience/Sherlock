@@ -176,6 +176,7 @@ curl -X POST \
 
 Once the model transfer learning is finished, you can start to use the newly created model to label your new images. The new image folder should also be hosted in S3. The structure is pretty similar to the one used in the transfer learning API. Please structure your folder like this:
 
+```
 .
 ├── YOUR_BUCKET_NAME
 │   ├── YOUR_IMAGE_FOLDER
@@ -186,6 +187,7 @@ Once the model transfer learning is finished, you can start to use the newly cre
 |		├── img5
 |		├── img6
 ...
+```
 
 Then, you can call the API like this:
 
