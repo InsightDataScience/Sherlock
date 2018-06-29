@@ -1,11 +1,9 @@
 # Michaniki
 Michaniki is a web platform that allows user to create a image classifier for custom images, based on pre-trained CNN models. It also allows to use the customized CNN to pre-label images, and re-train the customized CNN when more training data become avaliable.
 
-Michaniki is currently serveing as RESTful APIs without front-end UI.
+Michaniki is currently serveing as RESTful APIs.
 
-TO DO:
-* put image loader to celery worker
-* test the retraining API
+[Here](http://bit.ly/michaniki_demo) are the slides for project Michaniki.
 
 ---
 ## Development
@@ -140,7 +138,7 @@ The model name *base* is used to refer to the basic InceptionV3 model.
 			...
 ```
 
-#### 3. Create a New Classifier Using Custom Image Dataset:
+#### 3. Create a New Model Using Custom Image Dataset:
 *Michaniki* can do transfer learning on the pre-trained InceptionV3 CNN (without the top layer), and create a new CNN for users' image dataset.
 
 **The new image dataset should be stored at S3 first, with the directory architecture in S3 should look like this**:
@@ -172,7 +170,83 @@ curl -X POST \
   -F train_bucket_name=YOUR_BUCKET_NAME \
   -F train_bucket_prefix=models/YOUR_MODEL_NAME
 ```
-*Michaniki* will use the provided images to create a new model to classify the classes you provided in the S3 folder. Once the transfer learning is done, you can use the new model to label images by pass **YOUR_MODEL_NAME** to the inference API desribed eariler.
+*Michaniki* will use the provided images to create a new model to classify the classes you provided in the S3 folder. Once the transfer learning is done, you can use the new model to label images by pass **YOUR_MODEL_NAME** to the inference API described earlier.
 
-#### 4. Resume training on existing model:
+#### 4. Labeling new images:
+
+Once the model transfer learning is finished, you can start to use the newly created model to label your new images. The new image folder should also be hosted in S3. The structure is pretty similar to the one used in the transfer learning API. Please structure your folder like this:
+
+.
+├── YOUR_BUCKET_NAME
+│   ├── YOUR_IMAGE_FOLDER
+│   	├── img1
+|		├── img2
+|		├── img3
+|		├── img4
+|		├── img5
+|		├── img6
+...
+
+Then, you can call the API like this:
+
+```bash
+curl -X POST \
+  http://54.166.45.2:3031/inceptionV3/label \
+  -H 'Cache-Control: no-cache' \
+  -H 'Postman-Token: bf736848-d455-4c6c-9ec4-38a047e05e15' \
+  -H 'content-type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW' \
+  -F s3_bucket_name=S3_BUCKET_NAME \
+  -F s3_bucket_prefix=S3_BUCEKT_PREFIX \
+  -F model_name=sharkVsalmon
+```
+
+The return will be something like this:
+```
+{
+    "data": [
+        {
+            "image name": "salmon4.JPEG",
+            "prediction": [
+                {
+                    "label": "shark",
+                    "probability": 1
+                },
+                {
+                    "label": "salmon",
+                    "probability": 0
+                }
+            ]
+        },
+        {
+            "image name": "shark1.JPEG",
+            "prediction": [
+                {
+                    "label": "shark",
+                    "probability": 0.998984158039093
+                },
+                {
+                    "label": "salmon",
+                    "probability": 0.001015781774185598
+                }
+            ]
+        },
+...
+```
+
+
+#### 5. Resume training on existing model:
+
+Once more labeled images become available, you can retrain exiting models by submitting additional model folders. The structure should be the same as the one used by the transfer learning API.
+
+```bash
+curl -X POST \
+  http://54.166.45.2:3031/inceptionV3/retrain \
+  -H 'Cache-Control: no-cache' \
+  -H 'Postman-Token: 0710ad89-a997-423f-a11f-1708df195dad' \
+  -H 'content-type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW' \
+  -F nb_epoch=3 \
+  -F batch_size=2 \
+  -F train_bucket_name=S3_BUCKET_NAME \
+  -F train_bucket_prefix=S3_BUCEKT_PREFIX/sha
+```
 
