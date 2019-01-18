@@ -1,13 +1,13 @@
-# Michaniki
-Michaniki is a web platform that allows user to create a image classifier for custom images, based on pre-trained CNN models. It also allows to use the customized CNN to pre-label images, and re-train the customized CNN when more training data become avaliable.
+# Sherlock
+Sherlock is a web platform that allows user to create a image classifier for custom images, based on pre-trained CNN models. It also allows to use the customized CNN to pre-label images, and re-train the customized CNN when more training data become avaliable.
 
-Michaniki is currently serveing as RESTful APIs.
+Sherlock is currently serveing as RESTful APIs.
 
-[Here](http://bit.ly/michaniki_demo) are the slides for project Michaniki.
+[Here](http://bit.ly/michaniki_demo) are the slides for project Sherlock (previously called Michaniki).
 
 ---
 ## Development
-Everything is wrapped in Docker, here are the core packages used in *Michaniki*.
+Everything is wrapped in Docker, here are the core packages used in *Sherlock*.
 * Python 2.7.3
 * uWSGI
 * Flask
@@ -16,7 +16,7 @@ Everything is wrapped in Docker, here are the core packages used in *Michaniki*.
 * Keras + Tensorflow
 
 ## Transfer Learning Explained
-*Michaniki* does transfer learning and fine-tuning (two steps) on pre-trained deep CNNs using customize images. If you just want to setup *Michaniki*, skip to the next section.
+*Sherlock* does transfer learning and fine-tuning (two steps) on pre-trained deep CNNs using customize images. If you just want to setup *Sherlock*, skip to the next section.
 
 ## Setup environment
 #### 1. Install Docker:
