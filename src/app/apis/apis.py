@@ -16,6 +16,7 @@ from app import app
 app.register_blueprint(mnist_blueprint, url_prefix = '/mnist')
 app.register_blueprint(incept_blueprint, url_prefix = '/inceptionV3')
 app.register_blueprint(tasks_blueprint, url_prefix='/tasks')
+app.register_blueprint(sentiment_blueprint, url_prefix='/sentimentv1')
 
 @app.route('/')
 def index():
@@ -24,5 +25,3 @@ def index():
 @app.route('/add')
 def add_a():
     res = add.delay(3, 4)
-    
-    
