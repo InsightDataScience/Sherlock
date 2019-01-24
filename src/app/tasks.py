@@ -80,12 +80,16 @@ def async_transfer(model_name,
     if not os.path.exists(new_model_folder_path):
         os.makedirs(new_model_folder_path)
 
+    print "TEMP_FOLDER->{}".format(TEMP_FOLDER)
+
     image_data_path = API_helpers.download_a_dir_from_s3(bucket_name = s3_bucket_name,
                                     bucket_prefix = s3_bucket_prefix,
                                     local_path = TEMP_FOLDER)
     try:
         # init the transfer learning manager
         this_IV3_transfer = inceptionV3_transfer_retraining.InceptionTransferLeaner(model_name)
+        print "Done loading model"
+        print "image_data_path or local_dir:{}".format(image_data_path)
         new_model, label_dict, history = this_IV3_transfer.transfer_model(image_data_path,
                                          nb_epoch = INV3_TRANSFER_NB_EPOCH,
                                          batch_size = INV3_TRANSFER_BATCH_SIZE)
