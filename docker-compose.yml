@@ -15,6 +15,7 @@ services:
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
     volumes:
       - ./src:/opt/src
+
     command: ./entryPoint.sh
     depends_on:
       - redis
@@ -31,12 +32,29 @@ services:
     command: ['python', 'app/models/InceptionV3/inception_inference_server.py']
     volumes:
       - ./src:/opt/src
+      
     networks:
       - michaniki
     depends_on:
       - michaniki_client
       - redis
-  
+
+  sentiment_inference_server:
+    build: ./src
+    environment:
+      - REDIS_URL="redis://redis"
+      - REDIS_PORT=6379
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+    command: ['python', 'app/models/SentimentV1/sentiment_infer_server.py']
+    volumes:
+      - ./src:/opt/src
+    networks:
+      - michaniki
+    depends_on:
+      - michaniki_client
+      - redis
+
   celery_worker:
     build: ./src
     command: ['celery', '-A', 'app.celeryapp:michaniki_celery_app', 'worker', '-l', 'info']
@@ -54,14 +72,13 @@ services:
       - DB_PASSWORD=michaniki
       - DB_NAME=michanikidb
       - BROKER_URL=redis://redis:6379/0
-  
+
   redis:
     image: redis:4.0.5-alpine
     command: ["redis-server", "--appendonly", "yes"]
     hostname: redis
     networks:
       - michaniki
-        
+
 networks:
     michaniki:
-    
