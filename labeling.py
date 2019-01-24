@@ -4,7 +4,7 @@ class Image:
     
 
 
-def labelingPriority(img_folder, trained_model, labeled_folder):
+def labelingPriority(images_ul, trained_model, images_labeled):
 
     #order images
     #return array of file handlers ordered by priority
@@ -14,13 +14,18 @@ def main(model_name,base_model='inceptionV3', iterations=3, slices=5,
          bucket='insightai2019'):
     #load the images - array of Images
     #initialize benchmarks
-    for range(iterations):
+    for i in xrange(iterations):
         #analyze the images - priority q?
-        for range(slices):
+        for j in xrange(slices):
+            pass
             #update model with front of the queue
         #run benchmarks
 
     #display benchmarks
+    print "Helloworld"
+
+if __name__ == '__main__':
+    main('tomato_potato')
         
 
     
