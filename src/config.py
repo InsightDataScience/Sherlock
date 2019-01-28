@@ -11,6 +11,7 @@ INCEPTIONV3_TOPLESS_MODEL_PATH = env.str('INCEPTIONV3_TOPLESS_MODEL_PATH', defau
 INCEPTIONV3_IMAGE_QUEUE = env.str('INCEPTIONV3_IMAGE_QUEUE', default='inceptionV3_image_queue')
 INV3_TRANSFER_NB_EPOCH = env.str('INV3_TRANSFER_NB_EPOCH', default=3)
 INV3_TRANSFER_BATCH_SIZE = env.str('INV3_TRANSFER_BATCH_SIZE', default=2)
+SENTIMENT_TEXT_QUEUE = env.str('SENTIMENT_TEXT_QUEUE', default = 'sentimentV1_text_queue')
 
 # setting for mysql db
 # parsed from environment variables
