@@ -16,7 +16,7 @@ Everything is wrapped in Docker, here are the core packages used in *Sherlock*.
 * Keras + Tensorflow
 
 ## Transfer Learning Explained
-*Sherlock* does transfer learning and fine-tuning (two steps) on pre-trained deep CNNs using customize images. If you just want to setup *Sherlock*, skip to the next section.
+*Sherlock* does transfer learning and fine-tuning (two steps) on pre-trained deep CNNs on a custom image dataset. If you want to setup *Sherlock*, skip to the next section.
 
 ## Setup environment
 #### 1. Install Docker:
@@ -45,7 +45,7 @@ The package of Docker-CE for Mac already come with docker compose.
 #### 3. Install Git:
 [Install git](https://git-scm.com/downloads) for the appropriate system, if you don't have yet.
 
-## Build and Start *Michaniki*
+## Build and Start *Sherlock*
 #### 1. Clone the repo:
 
 ```bash
@@ -71,7 +71,7 @@ echo $AWS_SECRET_ACCESS_KEY
 Docker will access these environment variables and load them to docker.
 
 #### 3. Start the Docker Containers:
-move to the directory where you cloned *Sherlock* , and run:
+Move to the directory where you cloned *Sherlock* , and run:
 ```bash
 docker-compose up --build
 ```
@@ -87,7 +87,7 @@ Step 2/9 : RUN apt-get update && apt-get install -y --no-install-recommends apt-
 ...
 ```
 
-The first time of building might take few minutes, once finished, you should see the *uWSGI* server, *inference* server running, something like this:
+The first time building might take few minutes. Once finished, you should see the *uWSGI* server, *inference* server running, something like this:
 ```
 ...
 michaniki_client_1  | *** uWSGI is running in multiple interpreter mode ***
@@ -101,7 +101,7 @@ michaniki_client_1  | spawned uWSGI worker 4 (pid: 24, cores: 2)
 Then *sherlock* is ready for you.
 
 ## Use *Sherlock*:
-*Sherlock* currently provides 3 major APIs. To test *Sherlock*, I recommend to test the APIs using [POSTMAN](https://www.getpostman.com/), while the examples below are in terminal, using `cURL`
+*Sherlock* currently provides 3 major APIs. To test *Sherlock*, I recommend testing the APIs using [POSTMAN](https://www.getpostman.com/). The examples below are in terminal, using `cURL`
 
 #### 1. Welcome Page
 If *Sherlock* is running correctly, go to `http://127.0.0.1:3031/` in your web browser, you should see the welcome message of *Sherlock*.
@@ -119,7 +119,7 @@ curl -X POST \
   -F model_name=base
 ```
 
-replace the name after ``` image=@ ``` by the path of the image you want to run. *Sherlock* will return the image labels and probabilities, ranked from high to low, in `json` format:
+replace the name after ``` image=@ ``` with the path of the image you want to run. *Sherlock* will return the image labels and probabilities, ranked from high to low, in `json` format:
 
 The model name *base* is used to refer to the basic InceptionV3 model.
 
@@ -155,9 +155,9 @@ The model name *base* is used to refer to the basic InceptionV3 model.
 │   		    ├── class2
 ```
 
-The folder name you give to *YOUR_MODEL_NAME* will be used to identify this model once it get trained.
+The folder name you give to *YOUR_MODEL_NAME* will be used to identify this model once it is trained.
 
-The name of train and val folders **can't be changed**. The folder names for different classes will be used as the label of the class, you can create any amount of class folders as you want.
+The name of train and val folders **can't be changed**. The folder names for different classes will be used as the label of the class, you can create as many class folders as you want.
 
 **The S3 folders should have public access permission**.
 
@@ -171,11 +171,11 @@ curl -X POST \
   -F train_bucket_name=YOUR_BUCKET_NAME \
   -F train_bucket_prefix=models/YOUR_MODEL_NAME
 ```
-*Sherlock* will use the provided images to create a new model to classify the classes you provided in the S3 folder. Once the transfer learning is done, you can use the new model to label images by pass **YOUR_MODEL_NAME** to the inference API described earlier.
+*Sherlock* will use the provided images to create a new model to classify the classes you provided in the S3 folder. Once transfer learning is done, you can use the new model to label images by pass **YOUR_MODEL_NAME** to the inference API described earlier.
 
 #### 4. Labeling new images:
 
-Once the model transfer learning is finished, you can start to use the newly created model to label your new images. The new image folder should also be hosted in S3. The structure is pretty similar to the one used in the transfer learning API. Please structure your folder like this:
+Once transfer learning is finished, you can use the newly created model to label your new images. The new image folder should also be hosted in S3. The structure is pretty similar to the one used in the transfer learning API. Please structure your folder like this:
 
 ```
 .
