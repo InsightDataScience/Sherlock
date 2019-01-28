@@ -117,9 +117,8 @@ class InceptionTransferLeaner:
 
         train_dir = os.path.join(local_dir, "train")
         val_dir = os.path.join(local_dir, "val")
-        print "train_dir:{}".format(train_dir)
-        os.makedirs(train_dir)
-        os.makedirs(val_dir)
+        
+
 
         # set up parameters
         nb_train_samples = self.__get_nb_files(train_dir)

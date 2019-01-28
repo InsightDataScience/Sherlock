@@ -32,7 +32,7 @@ services:
     command: ['python', 'app/models/InceptionV3/inception_inference_server.py']
     volumes:
       - ./src:/opt/src
-      
+
     networks:
       - michaniki
     depends_on:
@@ -40,7 +40,9 @@ services:
       - redis
 
   sentiment_inference_server:
-    build: ./src
+    build:
+      context: ./src
+      dockerfile: Dockerfile-sentiment
     environment:
       - REDIS_URL="redis://redis"
       - REDIS_PORT=6379

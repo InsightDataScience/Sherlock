@@ -54,8 +54,8 @@ class sentimentV1_inference_server:
 
 
             if textIDs:
-                print "* Predicting for {} of Models".format(len(textIDs.keys()))
-                print "* Number of Sentences: {}".format(num_text)
+                print("* Predicting for {} of Models".format(len(textIDs.keys())))
+                print("* Number of Sentences: {}".format(num_text))
 
                 r = {"positive":0.5, "negative":0.5}
                 for t in text_list:
