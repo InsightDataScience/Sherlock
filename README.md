@@ -145,13 +145,14 @@ The model name *base* is used to refer to the basic InceptionV3 model.
 ```
 .
 ├── YOUR_BUCKET_NAME
-│   ├── YOUR_MODEL_NAME
-│   	├── train
-│   		├── class1
-│   		├── class2
-│   	├── val
-│   		├── class1
-│   		├── class2
+│   ├── models
+│       ├── YOUR_MODEL_NAME
+│   	        ├── train
+│   		    ├── class1
+│   		    ├── class2
+│   	        ├── val
+│   		    ├── class1
+│   		    ├── class2
 ```
 
 The folder name you give to *YOUR_MODEL_NAME* will be used to identify this model once it get trained.
