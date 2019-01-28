@@ -194,7 +194,7 @@ Then, you can call the API like this:
 
 ```bash
 curl -X POST \
-  http://54.166.45.2:3031/inceptionV3/label \
+  http://127.0.0.1:3031/inceptionV3/label \
   -H 'Cache-Control: no-cache' \
   -H 'Postman-Token: bf736848-d455-4c6c-9ec4-38a047e05e15' \
   -H 'content-type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW' \
@@ -243,7 +243,7 @@ Once more labeled images become available, you can retrain exiting models by sub
 
 ```bash
 curl -X POST \
-  http://54.166.45.2:3031/inceptionV3/retrain \
+  http://127.0.0.1:3031/inceptionV3/retrain \
   -H 'Cache-Control: no-cache' \
   -H 'Postman-Token: 0710ad89-a997-423f-a11f-1708df195dad' \
   -H 'content-type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW' \
