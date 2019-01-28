@@ -49,19 +49,19 @@ The package of Docker-CE for Mac already come with docker compose.
 #### 1. Clone the repo:
 
 ```bash
-git clone https://github.com/InsightDataCommunity/Michaniki
+git clone https://github.com/InsightDataCommunity/Sherlock
 ```
 
 #### 2. Export Your AWS Credentials to Host Environment.
-*Michaniki* needs to access S3 for customized images. You should create an IAM user at [AWS](https://aws.amazon.com/), if you don't yet have an AWS account, create one.
+*Sherlock* needs to access S3 for customized images. You should create an IAM user at [AWS](https://aws.amazon.com/), if you don't yet have an AWS account, create one.
 
-Then, export credentials to your local environment:
+Then, export your credentials to your local environment:
 ```bash
 export AWS_ACCESS_KEY_ID=YOUR_ACCESS_ID
 export AWS_SECRET_ACCESS_KEY=YOUR_ACCESS_KEY
 ```
 
-If success, you should be able to see your credentials by:
+You now should be able to see your credentials by:
 
 ```bash
 echo $AWS_ACCESS_KEY_ID
@@ -71,7 +71,7 @@ echo $AWS_SECRET_ACCESS_KEY
 Docker will access these environment variables and load them to docker.
 
 #### 3. Start the Docker Containers:
-move to the directory where you cloned *Michaniki* , and run:
+move to the directory where you cloned *Sherlock* , and run:
 ```bash
 docker-compose up --build
 ```
@@ -98,16 +98,16 @@ michaniki_client_1  | spawned uWSGI worker 3 (pid: 21, cores: 2)
 michaniki_client_1  | spawned uWSGI worker 4 (pid: 24, cores: 2)
 ```
 
-Then *michaniki* is ready for you.
+Then *sherlock* is ready for you.
 
-## Use *Michaniki*:
-*Michaniki* currently provides 3 major APIs. To test *Michaniki*, I recommend to test the APIs using [POSTMAN](https://www.getpostman.com/), while the examples below are in terminal, using `cURL`
+## Use *Sherlock*:
+*Sherlock* currently provides 3 major APIs. To test *Sherlock*, I recommend to test the APIs using [POSTMAN](https://www.getpostman.com/), while the examples below are in terminal, using `cURL`
 
 #### 1. Welcome Page
-If *Michaniki* is running correctly, go to `http://127.0.0.1:3031/` in your web browser, you should see the welcome message of *Michaniki*.
+If *Sherlock* is running correctly, go to `http://127.0.0.1:3031/` in your web browser, you should see the welcome message of *Sherlock*.
 
 #### 2. Predict a Image with InceptionV3
-*Michaniki* can classify any image to ImageNet labels using a pre-trained InceptionV3 CNN:
+*Sherlock* can classify any image to ImageNet labels using a pre-trained InceptionV3 CNN:
 
 ```bash
 curl -X POST \
@@ -119,7 +119,7 @@ curl -X POST \
   -F model_name=base
 ```
 
-replace the name after ``` image=@ ``` by the path of the image you want to run. *Michaniki* will return the image labels and probabilities, ranked from high to low, in `json` format:
+replace the name after ``` image=@ ``` by the path of the image you want to run. *Sherlock* will return the image labels and probabilities, ranked from high to low, in `json` format:
 
 The model name *base* is used to refer to the basic InceptionV3 model.
 
@@ -139,7 +139,7 @@ The model name *base* is used to refer to the basic InceptionV3 model.
 ```
 
 #### 3. Create a New Model Using Custom Image Dataset:
-*Michaniki* can do transfer learning on the pre-trained InceptionV3 CNN (without the top layer), and create a new CNN for users' image dataset.
+*Sherlock* can do transfer learning on the pre-trained InceptionV3 CNN (without the top layer), and create a new CNN for users' image dataset.
 
 **The new image dataset should be stored at S3 first, with the directory architecture in S3 should look like this**:
 ```
@@ -171,7 +171,7 @@ curl -X POST \
   -F train_bucket_name=YOUR_BUCKET_NAME \
   -F train_bucket_prefix=models/YOUR_MODEL_NAME
 ```
-*Michaniki* will use the provided images to create a new model to classify the classes you provided in the S3 folder. Once the transfer learning is done, you can use the new model to label images by pass **YOUR_MODEL_NAME** to the inference API described earlier.
+*Sherlock* will use the provided images to create a new model to classify the classes you provided in the S3 folder. Once the transfer learning is done, you can use the new model to label images by pass **YOUR_MODEL_NAME** to the inference API described earlier.
 
 #### 4. Labeling new images:
 
