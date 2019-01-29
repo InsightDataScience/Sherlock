@@ -40,7 +40,7 @@ def pred_sentiment():
     model_name = 'base'
 
     message = request.form.get('textv')
-    print "Received message:{}".format(message)
+    logging.info("Received message:%s", message)
     #sentence = Sentence(message)
 
     # create a image id
@@ -68,3 +68,20 @@ def pred_sentiment():
     return jsonify({
         "data": data
         }), 200
+
+@blueprint.route('/trainbert', methods=['POST'])
+def train_fasttext():
+    """
+    Finetune BERT uncased small language model
+    """
+    s3_bucket_name = request.form.get('s3_bucket_name')
+    model_name = request.form.get('model_name')
+    local_data_path = os.path.join('./tmp')
+
+    async_async_fasttexttrain.apply_async((model_name,
+                               local_data_path,
+                               s3_bucket_name,
+                               model_name,
+                               nb_epoch,
+                               batch_size,
+                               this_id), task_id=this_id)

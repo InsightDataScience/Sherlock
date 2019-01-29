@@ -12,6 +12,7 @@ from keras.models import load_model
 from app import app
 
 from .apis.InceptionV3 import API_helpers
+from .apis.SentimentV1 import API_helpers_nlp
 from .models.InceptionV3 import inceptionV3_transfer_retraining
 
 CLIENT_SLEEP = app.config['CLIENT_SLEEP']
@@ -20,7 +21,7 @@ INV3_TRANSFER_BATCH_SIZE = app.config['INV3_TRANSFER_BATCH_SIZE']
 INCEPTIONV3_IMAGE_QUEUE = app.config['INCEPTIONV3_IMAGE_QUEUE']
 INCEPTIONV3_TOPLESS_MODEL_PATH = app.config['INCEPTIONV3_TOPLESS_MODEL_PATH']
 
-SENTIMENT_TEXT_QUEUE = app.config['SENTIMENT_TEXT_QUEUE'] #Added by MS on 22-Jan-2019
+SENTIMENT_TEXT_QUEUE = app.config['SENTIMENT_TEXT_QUEUE']
 
 TEMP_FOLDER = os.path.join('./tmp')
 
@@ -88,8 +89,8 @@ def async_transfer(model_name,
     try:
         # init the transfer learning manager
         this_IV3_transfer = inceptionV3_transfer_retraining.InceptionTransferLeaner(model_name)
-        print "Done loading model"
-        print "image_data_path or local_dir:{}".format(image_data_path)
+
+
         new_model, label_dict, history = this_IV3_transfer.transfer_model(image_data_path,
                                          nb_epoch = INV3_TRANSFER_NB_EPOCH,
                                          batch_size = INV3_TRANSFER_BATCH_SIZE)
@@ -114,3 +115,15 @@ def async_transfer(model_name,
         shutil.rmtree(new_model_folder_path, ignore_errors=True)
         shutil.rmtree(image_data_path, ignore_errors=True)
         raise
+
+@michaniki_celery_app.task()
+def async_fasttexttrain(model_name,
+                s3_bucket_name,
+                s3_bucket_prefix,
+                id):
+    """
+    train a model using FastText from scratch
+    """
+    text_data_path = API_helpers_nlp.download_a_dir_from_s3(s3_bucket_name,
+                                                     s3_bucket_prefix,
+                                                     local_path = TEMP_FOLDER)

@@ -10,6 +10,8 @@ import json
 from textblob import TextBlob
 import logging
 from collections import defaultdict
+from flair.models import TextClassifier
+from flair.data import Sentence
 
 #helpers
 import settings
@@ -54,10 +56,10 @@ class sentimentV1_inference_server:
 
 
             if textIDs:
-                print("* Predicting for {} of Models".format(len(textIDs.keys())))
-                print("* Number of Sentences: {}".format(num_text))
+                logging.info("* Predicting for {} of Models".format(len(textIDs.keys())))
+                logging.info("* Number of Sentences: {}".format(num_text))
 
-                r = {"positive":0.5, "negative":0.5}
+                
                 for t in text_list:
                     logging.info("Text is:%s",t["text"])
                     preds = TextBlob(t["text"])
