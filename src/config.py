@@ -12,6 +12,7 @@ INCEPTIONV3_IMAGE_QUEUE = env.str('INCEPTIONV3_IMAGE_QUEUE', default='inceptionV
 INV3_TRANSFER_NB_EPOCH = env.str('INV3_TRANSFER_NB_EPOCH', default=3)
 INV3_TRANSFER_BATCH_SIZE = env.str('INV3_TRANSFER_BATCH_SIZE', default=2)
 SENTIMENT_TEXT_QUEUE = env.str('SENTIMENT_TEXT_QUEUE', default = 'sentimentV1_text_queue')
+BERT_MODEL_PATH = os.path.join("app", "models","SentimentV1","uncased_L-12_H-768_A-12")
 
 # setting for mysql db
 # parsed from environment variables

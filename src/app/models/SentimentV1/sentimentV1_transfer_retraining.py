@@ -43,7 +43,7 @@ class BertTransferLeaner:
 
         BERT_MODEL = 'uncased_L-12_H-768_A-12'
         BERT_PRETRAINED_DIR = f'{repo}/uncased_L-12_H-768_A-12'
-O       UTPUT_DIR = f'{repo}/outputs'
+        OUTPUT_DIR = f'{repo}/outputs'
         print(f'***** Model output directory: {OUTPUT_DIR} *****')
         print(f'***** BERT pretrained directory: {BERT_PRETRAINED_DIR} *****')
 
@@ -52,75 +52,48 @@ O       UTPUT_DIR = f'{repo}/outputs'
 
 
 
-        # set up parameters
-        nb_train_samples = self.__get_nb_files(train_dir)
-        nb_classes = len(glob.glob(train_dir + "/*"))
-        nb_val_samples = self.__get_nb_files(val_dir)
-        nb_epoch = int(nb_epoch)
-        batch_size = int(batch_size)
+        VOCAB_FILE = os.path.join(BERT_PRETRAINED_DIR, 'vocab.txt')
+        CONFIG_FILE = os.path.join(BERT_PRETRAINED_DIR, 'bert_config.json')
+        INIT_CHECKPOINT = os.path.join(BERT_PRETRAINED_DIR, 'bert_model.ckpt')
+        DO_LOWER_CASE = BERT_MODEL.startswith('uncased')
 
+        label_list = ['0', '1']
+        tokenizer = tokenization.FullTokenizer(vocab_file=VOCAB_FILE, do_lower_case=DO_LOWER_CASE)
+        train_examples = create_examples(train_lines, 'train', labels=train_labels)
 
+        tpu_cluster_resolver = None #Since training will happen on GPU, we won't need a cluster resolver
+#       TPUEstimator also supports training on CPU and GPU. You don't need to define a separate tf.estimator.Estimator.
+        run_config = tf.contrib.tpu.RunConfig(
+        cluster=tpu_cluster_resolver,
+        model_dir=OUTPUT_DIR,
+        save_checkpoints_steps=SAVE_CHECKPOINTS_STEPS,
+        tpu_config=tf.contrib.tpu.TPUConfig(
+        iterations_per_loop=ITERATIONS_PER_LOOP,
+        num_shards=NUM_TPU_CORES,
+        per_host_input_for_training=tf.contrib.tpu.InputPipelineConfig.PER_HOST_V2))
 
-        # data prep
-        train_datagen =  ImageDataGenerator(
-            preprocessing_function = preprocess_input
-          )
+        num_train_steps = int(
+            len(train_examples) / TRAIN_BATCH_SIZE * NUM_TRAIN_EPOCHS)
+        num_warmup_steps = int(num_train_steps * WARMUP_PROPORTION)
 
-        val_datagen = ImageDataGenerator(
-            preprocessing_function=preprocess_input
-            )
+        model_fn = run_classifier.model_fn_builder(
+            bert_config=modeling.BertConfig.from_json_file(CONFIG_FILE),
+            num_labels=len(label_list),
+            init_checkpoint=INIT_CHECKPOINT,
+            learning_rate=LEARNING_RATE,
+            num_train_steps=num_train_steps,
+            num_warmup_steps=num_warmup_steps,
+            use_tpu=False, #If False training will fall on CPU or GPU, depending on what is available
+            use_one_hot_embeddings=True)
 
-        # generator
-        train_generator = train_datagen.flow_from_directory(
-            train_dir,
-            target_size=(299, 299),
-            batch_size=batch_size)
-
-        validation_generator = val_datagen.flow_from_directory(
-            val_dir,
-            target_size=(299, 299),
-            batch_size=batch_size,
-            )
-
-        # get the class and label name, reverse key and value pair
-        classes_label_dict = train_generator.class_indices
-        classes_label_dict = {v: k for k, v in classes_label_dict.iteritems()}
-
-        # add a new top layer base on the user data
-        self.new_model = self.__add_new_last_layer(self.topless_model, nb_classes)
-
-        # set up transfer learning model
-        self.__setup_to_transfer_learn(model=self.new_model,
-                                       base_model=self.topless_model)
-
-        print "* Transfer: Added a New Last Layer... Starting Transfer Learning..."
-        # train the new model for few epoch
-        # TO DO:
-        # celery tasks
-        history_tl = self.new_model.fit_generator(train_generator,
-                                         nb_epoch=nb_epoch,
-                                         samples_per_epoch=nb_train_samples//batch_size,
-                                         validation_data=validation_generator,
-                                         nb_val_samples=nb_val_samples//batch_size,
-                                         class_weight='auto',
-                                         verbose=2)
-
-        # set up fine-tuning model
-        self.__setup_to_finetune(self.new_model, nb_layer_to_freeze=10)
-
-        print "* Transfer: Starting Fine-Tuning..."
-        # train the new model again to fine-tune it
-        history_ft = self.new_model.fit_generator(train_generator,
-                                         nb_epoch=nb_epoch,
-                                         samples_per_epoch=nb_train_samples//batch_size,
-                                         validation_data=validation_generator,
-                                         nb_val_samples=nb_val_samples//batch_size,
-                                         class_weight='auto',
-                                         verbose=2)
-
+        estimator = tf.contrib.tpu.TPUEstimator(
+            use_tpu=False, #If False training will fall on CPU or GPU, depending on what is available
+            model_fn=model_fn,
+            config=run_config,
+            train_batch_size=TRAIN_BATCH_SIZE,
+            eval_batch_size=EVAL_BATCH_SIZE)
         # return the model
-        return self.new_model, classes_label_dict, history_ft
-
+        
     def __setup_to_finetune(self, model, nb_layer_to_freeze):
         """
         Freeze the bottom NB_IV3_LAYERS and retrain the remaining top layers.
