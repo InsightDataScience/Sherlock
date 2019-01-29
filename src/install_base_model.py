@@ -3,6 +3,7 @@ import redis
 import logging
 import requests
 import zipfile, io
+from tqdm import tqdm
 from keras.applications.inception_v3 import InceptionV3
 
 BASE_MODEL_PATH = os.path.join("app", "models", "InceptionV3", "base", "base.h5")
@@ -36,7 +37,15 @@ else:
     logging.info("BERT model not found. Downloading....")
     BERT_UNCASED_URL = 'https://storage.googleapis.com/bert_models/2018_10_18/uncased_L-12_H-768_A-12.zip'
     r = requests.get(BERT_UNCASED_URL, stream=True)
-    z = zipfile.ZipFile(io.BytesIO(r.content))
+    total_size = int(r.headers.get('content-length', 0));
+    block_size = 1024
+    wrote=0
+    with open(os.path.join(BERT_DIR_PATH,'uncased_L-12_H-768_A-12.zip'), 'wb') as f:
+        for data in tqdm(r.iter_content(block_size), total=math.ceil(total_size//block_size) , unit='KB', unit_scale=True):
+            wrote = wrote  + len(data)
+            f.write(data)
+
+    z = zipfile.ZipFile(os.path.join(BERT_DIR_PATH,'uncased_L-12_H-768_A-12.zip'))
     z.extractall(BERT_DIR_PATH)
 
 # clean up the died images upon start:
