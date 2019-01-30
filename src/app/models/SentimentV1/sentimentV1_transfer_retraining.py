@@ -6,12 +6,13 @@ Created on Jan 13, 2018
 import os
 import glob
 import logging
-import tensorflow as tf
+
 #Import BERT related file - USED as is from Google/BERT
-import bert.modeling
-import bert.optimization
-import bert.run_classifier
-import bert.tokenization
+import modeling
+import optimization
+import run_classifier
+import tokenization
+import tensorflow as tf
 
 import settings
 import datetime
