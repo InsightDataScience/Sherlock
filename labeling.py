@@ -45,6 +45,7 @@ def queryInferenceServer(fileName, model_name='base',
 
 
 def uploadToS3(file_dict, key_path, bucket_name='insightai2019'):
+    # push all files in file_dict to S3
     s3 = boto3.client('s3')
     for key in file_dict:
         for datapoint in file_dict[key]:d
@@ -66,6 +67,7 @@ def main(model_name, base_model='inceptionV3', N_initial=5,
     for key in file_names:
         fn_train_dict[key] = file_names[key][0:N_initial]
         del file_names[key][0:N_initial]
+    uploadToS3(fn_train_dict,'models')
     
     # initialize benchmarks
     for i in range(iterations):
