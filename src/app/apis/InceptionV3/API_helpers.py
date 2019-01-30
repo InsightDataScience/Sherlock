@@ -51,7 +51,7 @@ def download_a_dir_from_s3(bucket_name, bucket_prefix, local_path):
     
     Will not download if the local folder already exists
     """
-    print "*Helper: Loading Images from S3 {} {}".format(bucket_name,bucket_prefix)
+    print "*Helper: Loading Images from S3 {} {}".format(bucket_name, bucket_prefix)
     output_path = os.path.join(local_path, bucket_prefix)
     
     if not os.path.exists(os.path.join(output_path, 'train')):
@@ -66,23 +66,17 @@ def download_a_dir_from_s3(bucket_name, bucket_prefix, local_path):
             save_path = os.path.join(local_path, path)
             # boto3 s3 download_file will throw exception if folder not exists
             try:
-                print "save_path: {}".format(save_path)
                 os.makedirs(save_path)
             except OSError:
                 print OSError
                 pass
-#            print "local_path={}, type={}".format(local_path,type(local_path))
-#            print "obj.key:{}-type:{}".format(obj.key,type(obj.key))
-#            print "bucket_name:{}-type:{}".format(bucket_name,type(bucket_name))
-#            print "bucket_prefix:{}".format(bucket_prefix)
-#            print "os.path.join(save_path,filename):{}".format(os.path.join(save_path,filename))
             try:
-                mybucket.download_file(obj.key, os.path.join(save_path, filename))
-            #iterator contains keys for directories and files, just want files
+                mybucket.download_file(obj.key,
+                           os.path.join(save_path, filename))
+            #iterator contains keys for directories and files
             except OSError:
                 pass
-#            print "ok, my bucket?"
-            
+
     print "* Helper: Images Loaded at: {}".format(output_path)
     return output_path
 
