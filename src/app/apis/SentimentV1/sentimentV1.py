@@ -7,6 +7,8 @@ Web service for Sentiment Analysis
 '''
 import uuid
 import json
+import os
+import io
 import time
 import celery
 import json
