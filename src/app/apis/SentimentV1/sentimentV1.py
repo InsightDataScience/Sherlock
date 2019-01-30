@@ -76,7 +76,7 @@ def pred_sentiment():
         }), 200
 
 @blueprint.route('/trainbert', methods=['POST'])
-def train_fasttext():
+def train_bert():
     """
     Finetune BERT uncased small language model
     """
