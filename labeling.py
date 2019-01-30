@@ -6,7 +6,7 @@ class Image:
         self.file_name = fname
         self.label = label
 
-    def location():
+    def location():n
         return self.file_name
 
     def getLabel():
@@ -20,7 +20,7 @@ def labelingPriority(data_unlabeled, trained_model, data_labeled=None):
 
 
 def checkLabelTopN(result, label, n=1):
-    #returns True if label is in the top n, false otherwise
+    # returns True if label is in the top n, false otherwise
     result = result['data']['prediction'][:n]
     for r in result:
         if label in r['label']:
@@ -28,17 +28,24 @@ def checkLabelTopN(result, label, n=1):
     return False
 
 
-def main(model_name, base_model='inceptionV3', N_initial=5, iterations=3, slices=5,
-         bucket='insightai2019', data_types=['.jpg','jpeg']):
-    #shuffle/split
-    
-    #load the images - array of Images
-    data_path = './' + model_name + '/train/'
-    class_paths = glob.glob(data_path + '/*')
+def loadDirectory(path):
+    class_paths = glob.glob(path + '/*')
     class_names = list(map(lambda x: x.split('/')[-1], class_paths))
-    file_names = {x:glob.glob( data_path + x + '/*') for x in class_names}
+    file_names = {x:glob.glob(path + x + '/*') for x in class_names}
+    return class_names, file_names
+    
+    
+def main(model_name, base_model='inceptionV3', N_initial=5,
+         iterations=3, slices=5, bucket='insightai2019',
+         data_types=['.jpg', 'jpeg']):
+    # shuffle/split
 
-    #first training pass takes N_initial of each class
+    # load the images - array of Images
+    class_names, file_names = loadDirectory('./' + model_name + '/train/')
+    validate_class_names, validate_file_names = loadDirectory(
+        './' + model_name + '/val/')
+
+    # first training pass takes N_initial of each class
     fn_train_dict = {}
     for key in file_names:
         fn_train_dict[key] = file_names[key][0:N_initial]

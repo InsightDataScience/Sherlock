@@ -2,6 +2,7 @@ from sys import argv
 import requests
 
 def main(fname):
+    
     print "Hello {}".format(fname)
     url = 'http://127.0.0.1:3031/inceptionV3/predict'
     headers = {
@@ -11,8 +12,8 @@ def main(fname):
     }
 
     form_data = {
-        'image': open('hotdog.jpg', 'rb').read(),
-        'model_name': 'base'
+        unicode('model_name'): unicode('base'),
+        'image': open('hotdog.jpg', 'rb')
     }
     # form_data = {'image':'@hotdog.jpg', 'model_name':'base'}
 
