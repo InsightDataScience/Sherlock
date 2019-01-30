@@ -41,7 +41,7 @@ def save_classes_label_dict(label_dict, file_path_name):
     with open(file_path_name, 'w') as fp:
         json.dump(label_dict, fp)
     
-    print "* Helper: Classes Label Json Saved"
+    print "*Helper: Classes Label Json Saved"
 
 def download_a_dir_from_s3(bucket_name, bucket_prefix, local_path):
     """
@@ -68,7 +68,6 @@ def download_a_dir_from_s3(bucket_name, bucket_prefix, local_path):
             try:
                 os.makedirs(save_path)
             except OSError:
-                print OSError
                 pass
             try:
                 mybucket.download_file(obj.key,
