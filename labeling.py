@@ -34,6 +34,13 @@ def loadDirectory(path):
     file_names = {x:glob.glob(path + x + '/*') for x in class_names}
     return class_names, file_names
     
+
+def queryInferenceServer(model_name, fileName,
+                         url='http://127.0.0.1:3031/inceptionV3/predict'):
+    form_data = {'model_name' : model_name}
+    files = {'image' : open(fileName, 'rb')}
+    response = requests.post(url, files=files, data=form_data)
+    return response.json()
     
 def main(model_name, base_model='inceptionV3', N_initial=5,
          iterations=3, slices=5, bucket='insightai2019',
@@ -89,7 +96,6 @@ def main(model_name, base_model='inceptionV3', N_initial=5,
 
     # display benchmarks
     # pickle data
-    print "Helloworld"
 
 if __name__ == '__main__':
     main('tomato_potato')
