@@ -1,5 +1,6 @@
 import boto3
 import glob
+import requests
 
 class Image:
     def __init__(self, fname, label=None):
@@ -35,16 +36,24 @@ def loadDirectory(path):
     return class_names, file_names
     
 
-def queryInferenceServer(model_name, fileName,
+def queryInferenceServer(fileName, model_name='base',
                          url='http://127.0.0.1:3031/inceptionV3/predict'):
     form_data = {'model_name' : model_name}
     files = {'image' : open(fileName, 'rb')}
     response = requests.post(url, files=files, data=form_data)
     return response.json()
-    
+
+
+def uploadToS3(file_dict, key_path, bucket_name='insightai2019'):
+    s3 = boto3.client('s3')
+    for key in file_dict:
+        for datapoint in file_dict[key]:d
+            file_key = key_path + datapoint[1:]
+            s3.upload_file(datapoint, bucket_name, file_key)
+
+
 def main(model_name, base_model='inceptionV3', N_initial=5,
-         iterations=3, slices=5, bucket='insightai2019',
-         data_types=['.jpg', 'jpeg']):
+         iterations=3, slices=5, bucket='insightai2019'):
     # shuffle/split
 
     # load the images - array of Images

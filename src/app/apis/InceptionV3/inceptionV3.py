@@ -48,12 +48,14 @@ def label():
     s3_bucket_name = request.form.get('s3_bucket_name')
     s3_bucket_prefix = request.form.get('s3_bucket_prefix')
     model_name = request.form.get('model_name')
-    
+    print "s3_bucket_name: {}".format(s3_bucket_name)
+    print "s3_bucket_prefix: {}".format(s3_bucket_prefix)
+    print "model_name: {}".format(model_name)
     # load image from s3
     image_data_path = API_helpers.download_a_dir_from_s3(s3_bucket_name,
                                                      s3_bucket_prefix, 
                                                      local_path = TEMP_FOLDER)
-    
+    print "image_data_path:{}".format(image_data_path)
     # for each images in the folder
     # supports .png and .jpg
     all_image_ids = []
@@ -182,9 +184,12 @@ def run_inceptionV3():
     
     # load model name
     model_name = request.form.get('model_name')
+    print "model_name = {}, type = {}".format(model_name, type(model_name))
 
     # load and pre-processing image
     img = request.files['image']
+    print "image type = {}".format(type(img))
+    
     img = image.load_img(img, target_size = (299, 299))
     x = np.expand_dims(image.img_to_array(img), axis=0)
     x = preprocess_input(x)
