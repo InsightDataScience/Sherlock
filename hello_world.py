@@ -12,8 +12,8 @@ def main(fname):
     }
 
     form_data = {
-        unicode('model_name'): unicode('base'),
-        'image': open('hotdog.jpg', 'rb')
+        [unicode('model_name'): unicode('base'),
+        'image': open('hotdog.jpg', 'rb')]
     }
     # form_data = {'image':'@hotdog.jpg', 'model_name':'base'}
 
