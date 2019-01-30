@@ -1,8 +1,8 @@
 results/
 .vscode/
 
-app/models/SentimentV1/uncased_L-12_H-768_A-12/
-app/models/SentimentV1/outputs/
+src/app/models/SentimentV1/uncased_L-12_H-768_A-12/
+
 *.zip
 
 # Byte-compiled / optimized / DLL files
