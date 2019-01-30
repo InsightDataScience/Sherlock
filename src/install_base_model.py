@@ -4,6 +4,7 @@ import logging
 import requests
 import zipfile, io
 from tqdm import tqdm
+import math
 from keras.applications.inception_v3 import InceptionV3
 
 BASE_MODEL_PATH = os.path.join("app", "models", "InceptionV3", "base", "base.h5")

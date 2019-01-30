@@ -8,10 +8,10 @@ import glob
 import logging
 import tensorflow as tf
 #Import BERT related file - USED as is from Google/BERT
-from bert import import modeling
-from bert import optimization
-from bert import run_classifier
-from bert import tokenization
+import bert.modeling
+import bert.optimization
+import bert.run_classifier
+import bert.tokenization
 
 import settings
 import datetime
@@ -40,11 +40,11 @@ class BertTransferLeaner:
 
         mod_name = self.model_name
         BERT_MODEL = 'uncased_L-12_H-768_A-12'
-        BERT_PRETRAINED_DIR = f'{BERT_MODEL_PATH}/uncased_L-12_H-768_A-12'
-        OUTPUT_DIR = f'{local_dir}/output_bert'
+        BERT_PRETRAINED_DIR = os.path.join(BERT_MODEL_PATH,'uncased_L-12_H-768_A-12')
+        OUTPUT_DIR = os.path.join(local_dir,'output_bert')
         DATA_DIR = os.path.join(local_dir,'data')
-        print(f'***** Model output directory: {OUTPUT_DIR} *****')
-        print(f'***** BERT pretrained directory: {BERT_PRETRAINED_DIR} *****')
+        logging.info('***** Model output directory: %s*****',OUTPUT_DIR)
+        logging.info('***** BERT pretrained directory: %s *****',BERT_PRETRAINED_DIR)
 
         TRAIN_BATCH_SIZE = 32
         EVAL_BATCH_SIZE = 8
@@ -59,8 +59,8 @@ class BertTransferLeaner:
         ITERATIONS_PER_LOOP = 1000
         NUM_TPU_CORES = 8
 
-        VOCAB_FILE = f'{BERT_PRETRAINED_DIR}/vocab.txt'
-        BERT_CONFIG_FILE = f'{BERT_PRETRAINED_DIR}/bert_config.json'
+        VOCAB_FILE = os.path.join(BERT_PRETRAINED_DIR,'vocab.txt')
+        BERT_CONFIG_FILE = os.path.join(BERT_PRETRAINED_DIR,'bert_config.json')
         INIT_CHECKPOINT = os.path.join(BERT_PRETRAINED_DIR, 'bert_model.ckpt')
         DO_LOWER_CASE = BERT_MODEL.startswith('uncased')
 
