@@ -14,6 +14,7 @@ from app import app
 from .apis.InceptionV3 import API_helpers
 from .apis.SentimentV1 import API_helpers_nlp
 from .models.InceptionV3 import inceptionV3_transfer_retraining
+from .models.SentimentV1 import sentimentV1_transfer_retraining
 
 CLIENT_SLEEP = app.config['CLIENT_SLEEP']
 INV3_TRANSFER_NB_EPOCH = app.config['INV3_TRANSFER_NB_EPOCH']
@@ -117,7 +118,7 @@ def async_transfer(model_name,
         raise
 
 @michaniki_celery_app.task()
-def async_fasttexttrain(model_name,
+def async_berttrain(model_name,
                 s3_bucket_name,
                 s3_bucket_prefix,
                 id):
@@ -127,3 +128,12 @@ def async_fasttexttrain(model_name,
     text_data_path = API_helpers_nlp.download_a_dir_from_s3(s3_bucket_name,
                                                      s3_bucket_prefix,
                                                      local_path = TEMP_FOLDER)
+
+    logging.info('*Text Data Path:%s',text_data_path)
+    try:
+        bert_transfer = sentimentV1_transfer_retraining.BertTransferLeaner(model_name)
+        new_model_eval_res = bert_transfer.traineval_model(text_data_path)
+        return new_model_eval_res
+    except Exception as err:
+        shutil.rmtree(text_data_path, ignore_errors=True)
+        raise

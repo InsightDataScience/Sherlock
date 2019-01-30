@@ -8,14 +8,18 @@ Web service for Sentiment Analysis
 import uuid
 import json
 import time
-
+import celery
+import json
+import logging
 # flask
 from flask import jsonify
 from flask import Blueprint, request
 
+import API_helpers_nlp
+
 from app import app
 from app import db
-import logging
+
 # michaniki app
 from ...tasks import *
 
@@ -77,11 +81,20 @@ def train_fasttext():
     s3_bucket_name = request.form.get('s3_bucket_name')
     model_name = request.form.get('model_name')
     local_data_path = os.path.join('./tmp')
+    batch_size = 32
+    nb_epoch = 3
 
-    async_async_fasttexttrain.apply_async((model_name,
+    # create a celer task id
+    this_id = celery.uuid()
+
+    async_berttrain.apply_async((model_name,
                                local_data_path,
                                s3_bucket_name,
-                               model_name,
+                               s3_bucket_prefix,
                                nb_epoch,
                                batch_size,
                                this_id), task_id=this_id)
+    return jsonify({
+        "task_id": this_id,
+        "status": "Retraining and Fine-Tuning usign BERT is Initiated"
+    }), 200

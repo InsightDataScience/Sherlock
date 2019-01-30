@@ -35,27 +35,29 @@ def download_a_dir_from_s3(bucket_name, bucket_prefix, local_path):
     Will not download if the local folder already exists
     """
     logging.info("* Helper: Loading Text from S3 {} {}".format(bucket_name,bucket_prefix))
-    output_path = os.path.join(local_path, bucket_prefix)
+    path = os.path.join(bucket_name,'data')
+    output_path = os.path.join(local_path, bucket_name)
     save_path = os.path.join(local_path, path)
-    if not os.path.exists(os.path.join(output_path, 'train')):
-        s3 = boto3.resource('s3')
-        mybucket = s3.Bucket(bucket_name)
-        # if blank prefix is given, return everything)
-        key1 = 'data/train.csv'
-        key2 = 'data/dev.csv'
-        key3 = 'data/test.csv'
-        try:
-            os.makedirs(save_path)
-        except OSError:
-            pass
-        try:
-            s3.Bucket(bucket_name).download_file(key1, os.path.join(save_path,'train.csv'))
-            s3.Bucket(bucket_name).download_file(key2, os.path.join(save_path,'dev.csv'))
-        except botocore.exceptions.ClientError as e:
-            if e.response['Error']['Code'] == "404":
-                print("The object does not exist.")
-            else:
-                raise
+    logging.info('*Saving text files at:%s',save_path)
 
-    logging.info("* Helper: Images Loaded at: {}".format(output_path))
+    s3 = boto3.resource('s3')
+    mybucket = s3.Bucket(bucket_name)
+    # if blank prefix is given, return everything)
+    key1 = 'data/train.csv'
+    key2 = 'data/dev.csv'
+    key3 = 'data/test.csv'
+    try:
+        os.makedirs(save_path)
+    except OSError:
+        pass
+    try:
+        s3.Bucket(bucket_name).download_file(key1, os.path.join(save_path,'train.csv'))
+        s3.Bucket(bucket_name).download_file(key2, os.path.join(save_path,'dev.csv'))
+    except botocore.exceptions.ClientError as e:
+        if e.response['Error']['Code'] == "404":
+            print("The object does not exist.")
+        else:
+            raise
+
+    logging.info("* Helper: Text Loaded at: {}".format(output_path))
     return output_path

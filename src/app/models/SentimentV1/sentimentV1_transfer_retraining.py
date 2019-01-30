@@ -6,94 +6,156 @@ Created on Jan 13, 2018
 import os
 import glob
 import logging
+import tensorflow as tf
+#Import BERT related file - USED as is from Google/BERT
+from bert import import modeling
+from bert import optimization
+from bert import run_classifier
+from bert import tokenization
 
 import settings
+import datetime
 
 from app import app
 
 INCEPTIONV3_TOPLESS_MODEL_PATH = app.config['INCEPTIONV3_TOPLESS_MODEL_PATH']
-
+BERT_MODEL_PATH = app.config['BERT_MODEL_PATH']
 
 
 class BertTransferLeaner:
     def __init__(self, model_name):
         self.model_name = model_name
-        # the creation of the model directory should be handled
-        # in the API
-        try:
-            logging.info("* Transfer: Loading Topless Model...")
-            self.topless_model = load_model(INCEPTIONV3_TOPLESS_MODEL_PATH)
 
-        except IOError:
-            # load model from keras
-            print "* Transfer: Loading Topless Model from Keras..."
-            self.topless_model = InceptionV3(include_top=False,
-                                            weights='imagenet',
-                                            input_shape=(299, 299, 3))
-
-        self.new_model = None # init the new model
-
-    def transfer_model(self, local_dir,
+    def traineval_model(self, local_dir,
                        nb_epoch,
                        batch_size):
         """
-        transfer the topless InceptionV3 model
-        to classify new classes
+        Use the BERT Uncased language model to train on
+        new data
         """
+        tf.logging.set_verbosity(tf.logging.INFO)
+        logging.info("*:BERT MODEL PATH:%s",BERT_MODEL_PATH)
+        logging.info("*:Local Dir%s",local_dir)
 
+
+        mod_name = self.model_name
         BERT_MODEL = 'uncased_L-12_H-768_A-12'
-        BERT_PRETRAINED_DIR = f'{repo}/uncased_L-12_H-768_A-12'
-        OUTPUT_DIR = f'{repo}/outputs'
+        BERT_PRETRAINED_DIR = f'{BERT_MODEL_PATH}/uncased_L-12_H-768_A-12'
+        OUTPUT_DIR = f'{local_dir}/output_bert'
+        DATA_DIR = os.path.join(local_dir,'data')
         print(f'***** Model output directory: {OUTPUT_DIR} *****')
         print(f'***** BERT pretrained directory: {BERT_PRETRAINED_DIR} *****')
 
-        train_dir = os.path.join(local_dir, "train")
-        val_dir = os.path.join(local_dir, "val")
+        TRAIN_BATCH_SIZE = 32
+        EVAL_BATCH_SIZE = 8
+        LEARNING_RATE = 2e-5
+        NUM_TRAIN_EPOCHS = 3.0
+        WARMUP_PROPORTION = 0.1
+        MAX_SEQ_LENGTH = 128
+        # Model configs
+        # if you wish to finetune a model on a larger dataset, use larger interval
+        SAVE_CHECKPOINTS_STEPS = 1000
+        # each checpoint weights about 1,5gb
+        ITERATIONS_PER_LOOP = 1000
+        NUM_TPU_CORES = 8
 
-
-
-        VOCAB_FILE = os.path.join(BERT_PRETRAINED_DIR, 'vocab.txt')
-        CONFIG_FILE = os.path.join(BERT_PRETRAINED_DIR, 'bert_config.json')
+        VOCAB_FILE = f'{BERT_PRETRAINED_DIR}/vocab.txt'
+        BERT_CONFIG_FILE = f'{BERT_PRETRAINED_DIR}/bert_config.json'
         INIT_CHECKPOINT = os.path.join(BERT_PRETRAINED_DIR, 'bert_model.ckpt')
         DO_LOWER_CASE = BERT_MODEL.startswith('uncased')
 
-        label_list = ['0', '1']
-        tokenizer = tokenization.FullTokenizer(vocab_file=VOCAB_FILE, do_lower_case=DO_LOWER_CASE)
-        train_examples = create_examples(train_lines, 'train', labels=train_labels)
+        bert_config = modeling.BertConfig.from_json_file(BERT_CONFIG_FILE)
+        tf.gfile.MakeDirs(OUTPUT_DIR)
+        processor = run_classifier.ColaProcessor()
+        label_list = processor.get_labels()
+        tokenizer = tokenization.FullTokenizer(
+        vocab_file=VOCAB_FILE, do_lower_case=DO_LOWER_CASE)
 
-        tpu_cluster_resolver = None #Since training will happen on GPU, we won't need a cluster resolver
-#       TPUEstimator also supports training on CPU and GPU. You don't need to define a separate tf.estimator.Estimator.
+        # Since training will happen on GPU, we won't need a cluster resolver
+        tpu_cluster_resolver = None
+        # TPUEstimator also supports training on CPU and GPU. You don't need to define a separate tf.estimator.Estimator.
         run_config = tf.contrib.tpu.RunConfig(
-        cluster=tpu_cluster_resolver,
-        model_dir=OUTPUT_DIR,
-        save_checkpoints_steps=SAVE_CHECKPOINTS_STEPS,
-        tpu_config=tf.contrib.tpu.TPUConfig(
-        iterations_per_loop=ITERATIONS_PER_LOOP,
-        num_shards=NUM_TPU_CORES,
-        per_host_input_for_training=tf.contrib.tpu.InputPipelineConfig.PER_HOST_V2))
+            cluster=tpu_cluster_resolver,
+            model_dir=OUTPUT_DIR,
+            save_checkpoints_steps=SAVE_CHECKPOINTS_STEPS,
+            tpu_config=tf.contrib.tpu.TPUConfig(
+                iterations_per_loop=ITERATIONS_PER_LOOP,
+                num_shards=NUM_TPU_CORES,
+                per_host_input_for_training=tf.contrib.tpu.InputPipelineConfig.PER_HOST_V2))
 
+        train_examples = None
+        num_train_steps = None
+        num_warmup_steps = None
+        train_examples = processor.get_train_examples(DATA_DIR)
         num_train_steps = int(
             len(train_examples) / TRAIN_BATCH_SIZE * NUM_TRAIN_EPOCHS)
         num_warmup_steps = int(num_train_steps * WARMUP_PROPORTION)
 
         model_fn = run_classifier.model_fn_builder(
-            bert_config=modeling.BertConfig.from_json_file(CONFIG_FILE),
+            bert_config=bert_config,
             num_labels=len(label_list),
             init_checkpoint=INIT_CHECKPOINT,
             learning_rate=LEARNING_RATE,
             num_train_steps=num_train_steps,
             num_warmup_steps=num_warmup_steps,
-            use_tpu=False, #If False training will fall on CPU or GPU, depending on what is available
-            use_one_hot_embeddings=True)
+            use_tpu=False,  # If False training will fall on CPU or GPU, depending on what is available
+            use_one_hot_embeddings=False) #Try with True
 
         estimator = tf.contrib.tpu.TPUEstimator(
-            use_tpu=False, #If False training will fall on CPU or GPU, depending on what is available
+            use_tpu=False,  # If False training will fall on CPU or GPU, depending on what is available
             model_fn=model_fn,
             config=run_config,
             train_batch_size=TRAIN_BATCH_SIZE,
             eval_batch_size=EVAL_BATCH_SIZE)
-        # return the model
-        
+
+        # Train the model.
+        logging.info('Starting Training...')
+        train_file = os.path.join(OUTPUT_DIR, "train.tf_record")
+        run_classifier.file_based_convert_examples_to_features(
+            train_examples, label_list, MAX_SEQ_LENGTH, tokenizer, train_file)
+        tf.logging.info('***** Started training at {} *****'.format(datetime.datetime.now()))
+        tf.logging.info('  Num examples = {}'.format(len(train_examples)))
+        tf.logging.info('  Batch size = {}'.format(TRAIN_BATCH_SIZE))
+        tf.logging.info("  Num steps = %d", num_train_steps)
+        train_input_fn = run_classifier.file_based_input_fn_builder(
+            input_file=train_file,
+            seq_length=MAX_SEQ_LENGTH,
+            is_training=True,
+            drop_remainder=True)
+        estimator.train(input_fn=train_input_fn, max_steps=num_train_steps)
+        print('***** Finished training at {} *****'.format(datetime.datetime.now()))
+        # Do Eval
+        logging.info('Starting Eval..')
+        eval_examples = processor.get_dev_examples(DATA_DIR)
+        num_actual_eval_examples = len(eval_examples)
+        eval_file = os.path.join(OUTPUT_DIR, "eval.tf_record")
+        file_based_convert_examples_to_features(
+            eval_examples, label_list, MAX_SEQ_LENGTH, tokenizer, eval_file)
+
+        tf.logging.info("***** Running evaluation *****")
+        tf.logging.info("  Num examples = %d (%d actual, %d padding)",
+                        len(eval_examples), num_actual_eval_examples,
+                        len(eval_examples) - num_actual_eval_examples)
+        tf.logging.info("  Batch size = %d", FLAGS.eval_batch_size)
+        eval_steps = None
+
+        eval_input_fn = file_based_input_fn_builder(
+            input_file=eval_file,
+            seq_length=FLAGS.max_seq_length,
+            is_training=False,
+            drop_remainder=False)
+
+        result = estimator.evaluate(input_fn=eval_input_fn, steps=eval_steps)
+
+        output_eval_file = os.path.join(OUTPUT_DIR, "eval_results.txt")
+        with tf.gfile.GFile(output_eval_file, "w") as writer:
+          tf.logging.info("***** Eval results *****")
+          for key in sorted(result.keys()):
+            tf.logging.info("  %s = %s", key, str(result[key]))
+            writer.write("%s = %s\n" % (key, str(result[key])))
+
+        return result
+
     def __setup_to_finetune(self, model, nb_layer_to_freeze):
         """
         Freeze the bottom NB_IV3_LAYERS and retrain the remaining top layers.
