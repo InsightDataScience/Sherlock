@@ -44,9 +44,9 @@ def download_a_dir_from_s3(bucket_name, bucket_prefix, local_path):
     s3 = boto3.resource('s3')
     mybucket = s3.Bucket(bucket_name)
     # if blank prefix is given, return everything)
-    key1 = 'data/train.csv'
-    key2 = 'data/dev.csv'
-    key3 = 'data/test.csv'
+    key1 = 'train.csv'
+    key2 = 'dev.csv'
+    key3 = 'test.csv'
     try:
         os.makedirs(save_path)
     except OSError:
