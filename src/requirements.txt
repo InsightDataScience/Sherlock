@@ -90,6 +90,7 @@ tensorboard==1.8.0
 tensorflow==1.5.0
 termcolor==1.1.0
 tornado==5.0.2
+tqdm==4.26.0
 traitlets==4.3.2
 urllib3==1.23
 uWSGI==2.0.17

@@ -41,12 +41,12 @@ class BertTransferLeaner:
 
         mod_name = self.model_name
         BERT_MODEL = 'uncased_L-12_H-768_A-12'
-        BERT_PRETRAINED_DIR = os.path.join(BERT_MODEL_PATH,'uncased_L-12_H-768_A-12')
+        BERT_PRETRAINED_DIR = BERT_MODEL_PATH
         OUTPUT_DIR = os.path.join(local_dir,'output_bert')
         DATA_DIR = os.path.join(local_dir,'data')
         logging.info('***** Model output directory: %s*****',OUTPUT_DIR)
         logging.info('***** BERT pretrained directory: %s *****',BERT_PRETRAINED_DIR)
-
+        logging.info('***** DATA directory: %s *****',DATA_DIR)
         TRAIN_BATCH_SIZE = 32
         EVAL_BATCH_SIZE = 8
         LEARNING_RATE = 2e-5
@@ -65,6 +65,7 @@ class BertTransferLeaner:
         INIT_CHECKPOINT = os.path.join(BERT_PRETRAINED_DIR, 'bert_model.ckpt')
         DO_LOWER_CASE = BERT_MODEL.startswith('uncased')
 
+        logging.info("Found VOCAB File:%s",VOCAB_FILE)
         bert_config = modeling.BertConfig.from_json_file(BERT_CONFIG_FILE)
         tf.gfile.MakeDirs(OUTPUT_DIR)
         processor = run_classifier.ColaProcessor()

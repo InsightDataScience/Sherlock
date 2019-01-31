@@ -10,6 +10,7 @@ import sys
 import glob
 import json
 import boto3
+import botocore
 import base64
 import numpy as np
 import logging

@@ -23,7 +23,7 @@ from app import app
 from app import db
 
 # michaniki app
-from ...tasks import *
+from ...tasks_nlp import async_train_bert
 
 # temp folder save image files downloaded from S3
 TEMP_FOLDER = os.path.join('./tmp')
@@ -76,20 +76,21 @@ def pred_sentiment():
         }), 200
 
 @blueprint.route('/trainbert', methods=['POST'])
-def train_bert():
+def run_train_bert():
     """
     Finetune BERT uncased small language model
     """
-    s3_bucket_name = request.form.get('s3_bucket_name')
+    s3_bucket_name = request.form.get('train_bucket_name')
     model_name = request.form.get('model_name')
     local_data_path = os.path.join('./tmp')
+    s3_bucket_prefix = ''
     batch_size = 32
     nb_epoch = 3
 
     # create a celer task id
     this_id = celery.uuid()
 
-    async_berttrain.apply_async((model_name,
+    async_train_bert.apply_async((model_name,
                                local_data_path,
                                s3_bucket_name,
                                s3_bucket_prefix,
