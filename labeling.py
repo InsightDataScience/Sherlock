@@ -1,6 +1,7 @@
 import boto3
 import glob
 import requests
+import os
 
 class Image:
     def __init__(self, fname, label=None):
@@ -30,6 +31,8 @@ def checkLabelTopN(result, label, n=1):
 
 
 def loadDirectory(path):
+    # all directory names in path are class names
+    # all files inside a directory share label
     class_paths = glob.glob(path + '/*')
     class_names = list(map(lambda x: x.split('/')[-1], class_paths))
     file_names = {x:glob.glob(path + x + '/*') for x in class_names}
@@ -38,12 +41,37 @@ def loadDirectory(path):
 
 def queryInferenceServer(fileName, model_name='base',
                          url='http://127.0.0.1:3031/inceptionV3/predict'):
-    form_data = {'model_name' : model_name}
-    files = {'image' : open(fileName, 'rb')}
+    form_data = {'model_name': model_name}
+    files = {'image': open(fileName, 'rb')}
     response = requests.post(url, files=files, data=form_data)
     return response.json()
 
 
+def trainNewModel(model_name, bucket_name='insightai2019', path_prefix='models',
+                         url='http://127.0.0.1:3031/inceptionV3/transfer'):
+    form_data = {
+        'train_bucket_name': bucket_name, 
+        'train_bucket_prefix': os.path.join(path_prefix, model_name)
+    }
+
+    response = requests.post(url, data=form_data)
+    return response.json()
+
+
+def retrainModel(model_name, path, bucket_name='insightai2019',
+                 nb_epoch=3, batch_size=2,
+                 url='http://127.0.0.1:3031/inceptionV3/retrain'):
+    form_data = {
+        'nb_epoch': nb_epoch,
+        'batch_size': batch_size
+        'train_bucket_name': bucket_name,
+        'train_bucket_prefix': os.path.join(path, model_name)
+    }
+
+    response = requests.post(url, data=form_data)
+    return response.json()
+
+    
 def uploadToS3(file_dict, key_path, bucket_name='insightai2019'):
     # push all files in file_dict to S3
     s3 = boto3.client('s3')
