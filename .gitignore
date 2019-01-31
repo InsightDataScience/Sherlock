@@ -1,6 +1,10 @@
 results/
 .vscode/
 
+src/app/models/SentimentV1/uncased_L-12_H-768_A-12/
+
+*.zip
+
 # Byte-compiled / optimized / DLL files
 .DS_store
 __pycache__/

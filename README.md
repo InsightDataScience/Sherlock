@@ -1,7 +1,9 @@
 # Sherlock
 Sherlock is a web platform that allows user to create a image classifier for custom images, based on pre-trained CNN models. It also allows to use the customized CNN to pre-label images, and re-train the customized CNN when more training data become avaliable.
 
-Sherlock is currently serveing as RESTful APIs.
+Sherlock is currently serving as RESTful APIs.
+
+- [Sherlock for NLP](#sherlock-for-nlp)
 
 [Here](http://bit.ly/michaniki_demo) are the slides for project Sherlock (previously called Michaniki).
 
@@ -253,3 +255,45 @@ curl -X POST \
   -F train_bucket_prefix=S3_BUCEKT_PREFIX/sha
 ```
 
+## Sherlock for NLP
+
+### 1. Predict Sentiment of Text with Simple run_classifier
+```bash
+curl -X POST \
+  http://127.0.0.1:3031/sentimentV1/predict \
+  -H 'Cache-Control: no-cache' \
+  -H 'Postman-Token: eeedb319-2218-44b9-86eb-63a3a1f62e14' \
+  -H 'content-type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW' \
+  -F textv='the movie was bad' \
+  -F model_name=base
+```
+
+### 2. Train a new classification model using pre-trained BERT model
+
+**The new text dataset should be stored at S3 first, with the directory architecture in S3 should look like this**:
+```
+.
+├── YOUR_BUCKET_NAME
+│   ├── train.tsv
+│   ├── dev.tsv
+│   ├── test.tsv		
+```
+The folder name you give to *YOUR_MODEL_NAME* will be used to identify this model once it get trained.
+
+The name of train, dev and test files  **can't be changed**.
+The train and dev file should have below format (without header)-
+id label None Sentence
+1  0     NC   
+The test.tsv file should only have id and sentence column (with header)
+**The S3 folders should have public access permission**.
+
+To call this API, do:
+```bash
+curl -X POST \
+  http://127.0.0.1:3031/sentimentV1/trainbert \
+  -H 'Cache-Control: no-cache' \
+  -H 'Postman-Token: 4e90e1d6-de18-4501-a82c-f8a878616b12' \
+  -H 'content-type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW' \
+  -F train_bucket_name=YOUR_BUCKET_NAME \
+  -F train_bucket_prefix=YOUR_MODEL_NAME
+```

@@ -40,27 +40,27 @@ def save_classes_label_dict(label_dict, file_path_name):
     """
     with open(file_path_name, 'w') as fp:
         json.dump(label_dict, fp)
-    
+
     print "* Helper: Classes Label Json Saved"
 
 def download_a_dir_from_s3(bucket_name, bucket_prefix, local_path):
     """
-    download the folder from S3 
-    
+    download the folder from S3
+
     local: /src/tmp/model_data/
-    
+
     Will not download if the local folder already exists
     """
     print "* Helper: Loading Images from S3 {} {}".format(bucket_name,bucket_prefix)
     output_path = os.path.join(local_path, bucket_prefix)
-    
+
     if not os.path.exists(os.path.join(output_path, 'train')):
         s3 = boto3.resource('s3')
         mybucket = s3.Bucket(bucket_name)
         # if blank prefix is given, return everything)
         objs = mybucket.objects.filter(
             Prefix = bucket_prefix)
-        
+
         for obj in objs:
             path, filename = os.path.split(obj.key)
             save_path = os.path.join(local_path, path)
@@ -69,12 +69,10 @@ def download_a_dir_from_s3(bucket_name, bucket_prefix, local_path):
                 os.makedirs(save_path)
             except OSError:
                 pass
-            mybucket.download_file(obj.key, os.path.join(save_path, filename))
-            
+            try:
+                mybucket.download_file(obj.key, os.path.join(save_path, filename))
+            except OSError:
+                pass
+
     print "* Helper: Images Loaded at: {}".format(output_path)
     return output_path
-
-
-    
-    
-    
