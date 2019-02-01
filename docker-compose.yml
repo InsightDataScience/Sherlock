@@ -3,6 +3,7 @@ version: '3'
 services:
   michaniki_client:
     build: ./src
+    runtime: nvidia
     ports:
       - "3031:3031"
     environment:
@@ -25,6 +26,7 @@ services:
 
   inference_server:
     build: ./src
+    runtime: nvidia
     environment:
       - REDIS_URL="redis://redis"
       - REDIS_PORT=6379
@@ -45,6 +47,7 @@ services:
     build:
       context: ./src
       dockerfile: Dockerfile-sentiment
+    runtime: nvidia
     environment:
       - REDIS_URL="redis://redis"
       - REDIS_PORT=6379
@@ -61,6 +64,7 @@ services:
 
   celery_worker:
     build: ./src
+    runtime: nvidia
     command: ['celery', '-A', 'app.celeryapp:michaniki_celery_app', 'worker', '-l', 'info']
     volumes:
       - ./src:/opt/src
