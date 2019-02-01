@@ -13,6 +13,7 @@ services:
       - REDIS_PORT=6379
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - LD_LIBRARY_PATH=/usr/local/cuda-9.0/lib64
     volumes:
       - ./src:/opt/src
 
@@ -29,6 +30,7 @@ services:
       - REDIS_PORT=6379
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - LD_LIBRARY_PATH=/usr/local/cuda-9.0/lib64
     command: ['python', 'app/models/InceptionV3/inception_inference_server.py']
     volumes:
       - ./src:/opt/src
@@ -74,6 +76,7 @@ services:
       - DB_PASSWORD=michaniki
       - DB_NAME=michanikidb
       - BROKER_URL=redis://redis:6379/0
+      - LD_LIBRARY_PATH=/usr/local/cuda-9.0/lib64
 
   redis:
     image: redis:4.0.5-alpine
