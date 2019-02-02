@@ -129,8 +129,8 @@ class BertTransferLeaner:
         print('***** Finished training at {} *****'.format(datetime.datetime.now()))
         logging.info("*****Final Checkpoint*****%s",final_ckpt)
         final_ckpt_file = os.path.join(OUTPUT_DIR, "final_ckpt.txt")
-        with open(final_ckpt_file, "w") as fwriter:
-            fwriter.write(final_ckpt)
+        with tf.gfile.GFile(final_ckpt_file, "w") as writer:
+            writer.write("%s" % final_ckpt)
 
 
         # Do Eval
