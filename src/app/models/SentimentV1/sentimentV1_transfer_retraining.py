@@ -138,7 +138,7 @@ class BertTransferLeaner:
         tf.logging.info("  Num examples = %d (%d actual, %d padding)",
                         len(eval_examples), num_actual_eval_examples,
                         len(eval_examples) - num_actual_eval_examples)
-        tf.logging.info("  Batch size = %d", FLAGS.eval_batch_size)
+        tf.logging.info("  Batch size = %d", TRAIN_BATCH_SIZE)
         eval_steps = None
 
         eval_input_fn = run_classifier.file_based_input_fn_builder(
