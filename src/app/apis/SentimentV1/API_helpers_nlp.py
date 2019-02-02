@@ -45,7 +45,7 @@ def download_a_dir_from_s3(bucket_name, bucket_prefix, local_path):
     mybucket = s3.Bucket(bucket_name)
     # if blank prefix is given, return everything)
     key1 = 'train.tsv'
-    key2 = 'dev.tsv'
+    key2 = 'val.tsv'
     key3 = 'test.tsv'
     try:
         os.makedirs(save_path)
