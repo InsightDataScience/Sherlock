@@ -131,7 +131,7 @@ class BertTransferLeaner:
         eval_examples = processor.get_dev_examples(DATA_DIR)
         num_actual_eval_examples = len(eval_examples)
         eval_file = os.path.join(OUTPUT_DIR, "eval.tf_record")
-        file_based_convert_examples_to_features(
+        run_classifier.file_based_convert_examples_to_features(
             eval_examples, label_list, MAX_SEQ_LENGTH, tokenizer, eval_file)
 
         tf.logging.info("***** Running evaluation *****")
@@ -141,9 +141,9 @@ class BertTransferLeaner:
         tf.logging.info("  Batch size = %d", FLAGS.eval_batch_size)
         eval_steps = None
 
-        eval_input_fn = file_based_input_fn_builder(
+        eval_input_fn = run_classifier.file_based_input_fn_builder(
             input_file=eval_file,
-            seq_length=FLAGS.max_seq_length,
+            seq_length=MAX_SEQ_LENGTH,
             is_training=False,
             drop_remainder=False)
 
@@ -158,43 +158,4 @@ class BertTransferLeaner:
 
         return result
 
-    def __setup_to_finetune(self, model, nb_layer_to_freeze):
-        """
-        Freeze the bottom NB_IV3_LAYERS and retrain the remaining top layers.
-        note: NB_IV3_LAYERS corresponds to the top 2 inception blocks in the inceptionv3 arch
-        Args:
-        model: keras model
-        """
-        for layer in model.layers[:nb_layer_to_freeze]:
-            layer.trainable = False
-        for layer in model.layers[nb_layer_to_freeze:]:
-            layer.trainable = True
-        model.compile(optimizer=SGD(lr=0.0001, momentum=0.9), loss='categorical_crossentropy', metrics=['accuracy'])
-
-    def __setup_to_transfer_learn(self, model, base_model):
-        """Freeze all layers and compile the model"""
-        for layer in base_model.layers:
-            layer.trainable = False
-        model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
-
-    def __add_new_last_layer(self, topless_model, nb_classes):
-        """
-        add the last layer to the topless model
-        """
-        x = topless_model.output
-        x = GlobalAveragePooling2D()(x)
-        x = Dense(settings.FC_SIZE, activation='relu')(x) #new FC layer, random init
-        predictions = Dense(nb_classes, activation='softmax')(x) #new softmax layer
-        model = Model(input=topless_model.input, output=predictions)
-        return model
-
-    def __get_nb_files(self, directory):
-        """Get number of files by searching local dir recursively"""
-
-        if not os.path.exists(directory):
-            return 0
-        cnt = 0
-        for r, dirs, files in os.walk(directory):
-            for dr in dirs:
-                cnt += len(glob.glob(os.path.join(r, dr + "/*")))
-        return cnt
+    
