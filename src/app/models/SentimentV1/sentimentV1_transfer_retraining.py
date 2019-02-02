@@ -125,7 +125,14 @@ class BertTransferLeaner:
             is_training=True,
             drop_remainder=True)
         estimator.train(input_fn=train_input_fn, max_steps=num_train_steps)
+        final_ckpt = estimator.latest_checkpoint()
         print('***** Finished training at {} *****'.format(datetime.datetime.now()))
+        logging.info("*****Final Checkpoint*****%s",final_ckpt)
+        final_ckpt_file = os.path.join(OUTPUT_DIR, "final_ckpt.txt")
+        with tf.gfile.GFile(final_ckpt_file, "w") as writer:
+            writer.write("%s",final_ckpt)
+
+
         # Do Eval
         logging.info('Starting Eval..')
         eval_examples = processor.get_dev_examples(DATA_DIR)

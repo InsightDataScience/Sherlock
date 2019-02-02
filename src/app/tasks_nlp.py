@@ -43,6 +43,8 @@ def async_train_bert(model_name,
     try:
         bert_transfer = sentimentV1_transfer_retraining.BertTransferLeaner(model_name)
         new_model_eval_res = bert_transfer.traineval_model(text_data_path,nb_epoch,batch_size)
+        logging.info("****Training and eval done, back in async task")
+        print(new_model_eval_res)
         return new_model_eval_res
     except Exception as err:
         shutil.rmtree(text_data_path, ignore_errors=True)
