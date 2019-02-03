@@ -234,10 +234,7 @@ class BertTransferLeaner:
         train_examples = None
         num_train_steps = None
         num_warmup_steps = None
-        train_examples = processor.get_test_examples(DATA_DIR)
-        num_train_steps = int(
-            len(train_examples) / TRAIN_BATCH_SIZE * NUM_TRAIN_EPOCHS)
-        num_warmup_steps = int(num_train_steps * WARMUP_PROPORTION)
+        
 
         model_fn = run_classifier.model_fn_builder(
             bert_config=bert_config,
