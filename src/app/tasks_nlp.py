@@ -51,6 +51,7 @@ def async_train_bert(model_name,
         #shutil.rmtree(text_data_path, ignore_errors=True)
         raise
 
+@michaniki_celery_app.task()
 def async_test_bert(model_name,
                 local_data_path,
                 s3_bucket_name,

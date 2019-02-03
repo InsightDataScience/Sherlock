@@ -24,6 +24,7 @@ from app import db
 
 # michaniki app
 from ...tasks_nlp import async_train_bert
+from ...tasks_nlp import async_test_bert
 
 SENTIMENT_TEXT_QUEUE = app.config['SENTIMENT_TEXT_QUEUE']
 CLIENT_SLEEP = app.config['CLIENT_SLEEP']
