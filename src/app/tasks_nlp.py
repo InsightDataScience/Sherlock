@@ -50,3 +50,29 @@ def async_train_bert(model_name,
         logging.info(err)
         #shutil.rmtree(text_data_path, ignore_errors=True)
         raise
+
+def async_test_bert(model_name,
+                local_data_path,
+                s3_bucket_name,
+                s3_bucket_prefix,
+                nb_epoch,
+                batch_size,
+                id):
+    """
+    train a model using BERT pre-trained model
+    """
+    text_data_path = API_helpers_nlp.download_a_dir_from_s3(s3_bucket_name,
+                                                     s3_bucket_prefix,
+                                                     local_path = TEMP_FOLDER)
+
+    logging.info('*Text Data Path:%s',text_data_path)
+    try:
+        bert_transfer = sentimentV1_transfer_retraining.BertTransferLeaner(model_name)
+        new_model_eval_res = bert_transfer.test_model(text_data_path,nb_epoch,batch_size,s3_bucket_name)
+        logging.info("****Test done, file saved in S3")
+        print(new_model_eval_res)
+        return str(new_model_eval_res['eval_accuracy']),str(new_model_eval_res['global_step'])
+    except Exception as err:
+        logging.info(err)
+        #shutil.rmtree(text_data_path, ignore_errors=True)
+        raise

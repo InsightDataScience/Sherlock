@@ -25,6 +25,8 @@ from app import db
 # michaniki app
 from ...tasks_nlp import async_train_bert
 
+SENTIMENT_TEXT_QUEUE = app.config['SENTIMENT_TEXT_QUEUE']
+CLIENT_SLEEP = app.config['CLIENT_SLEEP']
 # temp folder save image files downloaded from S3
 TEMP_FOLDER = os.path.join('./tmp')
 
@@ -91,6 +93,33 @@ def run_train_bert():
     this_id = celery.uuid()
 
     async_train_bert.apply_async((model_name,
+                               local_data_path,
+                               s3_bucket_name,
+                               s3_bucket_prefix,
+                               nb_epoch,
+                               batch_size,
+                               this_id), task_id=this_id)
+    return jsonify({
+        "task_id": this_id,
+        "status": "Retraining and Fine-Tuning usign BERT is Initiated"
+    }), 200
+
+@blueprint.route('/trainbert', methods=['POST'])
+def run_test_bert():
+    """
+    Test sentences using BERT fine tuned model
+    """
+    s3_bucket_name = request.form.get('test_bucket_name')
+    model_name = request.form.get('model_name')
+    local_data_path = os.path.join('./tmp')
+    s3_bucket_prefix = ''
+    batch_size = 32
+    nb_epoch = 3
+
+    # create a celer task id
+    this_id = celery.uuid()
+
+    async_test_bert.apply_async((model_name,
                                local_data_path,
                                s3_bucket_name,
                                s3_bucket_prefix,

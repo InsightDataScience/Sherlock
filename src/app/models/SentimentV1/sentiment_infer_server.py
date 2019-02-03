@@ -7,10 +7,10 @@ import os
 import redis
 import time
 import json
-from textblob import TextBlob
 import logging
 from collections import defaultdict
-
+import fasttext
+import re
 
 #helpers
 import settings
@@ -22,6 +22,11 @@ class sentimentV1_inference_server:
     def __init__(self):
         # pre-load some models here on start
         self.loaded_models = {}
+    
+    def strip_formatting(self, string):
+        string = string.lower()
+        string = re.sub(r"([.!?,'/()])", r" \1 ", string)
+        return string
 
     def run_sentimentV1_infernece_server(self):
         '''
@@ -33,6 +38,9 @@ class sentimentV1_inference_server:
         Sentecnes are tracked using is their id
         '''
         logging.info("Sentiment Inference Server running")
+        FAST_IMDB_MODEL_PATH = os.path.join("app", "models", "SentimentV1","fastimdb","imdb_model.bin")
+        logging.info("IMDB Model path:%s",FAST_IMDB_MODEL_PATH)
+        classifier = fasttext.load_model(FAST_IMDB_MODEL_PATH)
         while True:
             queue = db.lrange(settings.TEXT_QUEUE, 0, settings.BATCH_SIZE) #Is this queue different from the Queue in API path
             textIDs = defaultdict(list) #dict to hold sentence and id for a model type
@@ -58,11 +66,16 @@ class sentimentV1_inference_server:
                 logging.info("* Predicting for {} of Models".format(len(textIDs.keys())))
                 logging.info("* Number of Sentences: {}".format(num_text))
 
-
+                reviews=[]
                 for t in text_list:
                     logging.info("Text is:%s",t["text"])
-                    preds = TextBlob(t["text"])
-                    res = {"polarity":preds.sentiment.polarity,"subjectvity":preds.sentiment.subjectivity}
+                    reviews.append(t["text"])
+                    preprocessed_reviews = list(map(self.strip_formatting, reviews))
+                    result = classifier.predict_proba(preprocessed_reviews, 1)
+                    if result[0][0][0] == '__label__1':
+                        label = 'positive'
+                    else: label = 'negative'
+                    res = {"label":label,"probability":result[0][0][1]}
                     db.set(t["id"], json.dumps(res))
 
                 db.ltrim(settings.TEXT_QUEUE, len(textIDs), -1)

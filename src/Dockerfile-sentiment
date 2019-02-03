@@ -1,19 +1,21 @@
-FROM continuumio/miniconda3:4.5.12
+FROM tensorflow/tensorflow:latest-gpu
 
 # utils
 RUN apt-get update && apt-get install -y --no-install-recommends apt-utils
 
-RUN conda install gxx_linux-64
+#RUN conda install gxx_linux-64
 
-RUN conda install python=3.6
+#RUN conda install python=3.6
 
-RUN apt-get install -y --force-yes default-libmysqlclient-dev mysql-client build-essential
+#RUN apt-get install -y --force-yes default-libmysqlclient-dev mysql-client build-essential
 
 # Grab requirements.txt.
 COPY requirementssenti.txt /tmp/requirementssenti.txt
 
 # Install dependencies
 RUN pip install -qr /tmp/requirementssenti.txt
+
+RUN pip install fasttext
 
 # create a user for web server
 RUN adduser --disabled-password --gecos "" foo
