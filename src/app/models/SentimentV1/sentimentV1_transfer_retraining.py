@@ -208,7 +208,7 @@ class BertTransferLeaner:
             content = f.readlines()
             logging.info("***Final_cktp->%s\n",content)
         test_ckpt = content[0].split('/')[-1]
-        INIT_CHECKPOINT = os.path.join(BERT_PRETRAINED_DIR, test_ckpt)
+        INIT_CHECKPOINT = os.path.join(OUTPUT_DIR, test_ckpt)
         DO_LOWER_CASE = BERT_MODEL.startswith('uncased')
 
         logging.info("Found VOCAB File:%s",VOCAB_FILE)
@@ -234,7 +234,7 @@ class BertTransferLeaner:
         train_examples = None
         num_train_steps = None
         num_warmup_steps = None
-        train_examples = processor.get_train_examples(DATA_DIR)
+        train_examples = processor.get_test_examples(DATA_DIR)
         num_train_steps = int(
             len(train_examples) / TRAIN_BATCH_SIZE * NUM_TRAIN_EPOCHS)
         num_warmup_steps = int(num_train_steps * WARMUP_PROPORTION)
