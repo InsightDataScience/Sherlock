@@ -11,7 +11,7 @@ from keras.applications.inception_v3 import InceptionV3
 
 BASE_MODEL_PATH = os.path.join("app", "models", "InceptionV3", "base", "base.h5")
 TOPLESS_MODEL_PATH = os.path.join("app", "models", "InceptionV3", "topless")
-BERT_MODEL_PATH = os.path.join("app", "models", "SentimentV1", "uncased_L-12_H-768_A-12","bert_model.ckpt.data-00000-of-00001")
+BERT_MODEL_PATH = os.path.join("app", "models", "SentimentV1", "uncased_L-12_H-768_A-12","bert_model.ckpt")
 BERT_DIR_PATH = os.path.join("app", "models", "SentimentV1")
 FAST_IMDB_DIR = os.path.join("app", "models", "SentimentV1","fastimdb")
 FAST_IMDB_MODEL_PATH = os.path.join("app", "models", "SentimentV1","fastimdb","imdb_model.bin")
@@ -55,7 +55,7 @@ else:
     os.remove(os.path.join(BERT_DIR_PATH,'uncased_L-12_H-768_A-12.zip'))
 
 if os.path.exists(FAST_IMDB_MODEL_PATH):
-    logging.info("* Found Base IMDB model")
+    print "* Found Base IMDB model"
 else:
     logging.info("Base IMDB model not found. Downloading....")
     s3 = boto3.resource('s3')
