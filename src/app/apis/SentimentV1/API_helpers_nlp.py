@@ -54,7 +54,7 @@ def download_a_dir_from_s3(bucket_name, bucket_prefix, local_path):
     try:
         s3.Bucket(bucket_name).download_file(key1, os.path.join(save_path,'train.tsv'))
         s3.Bucket(bucket_name).download_file(key2, os.path.join(save_path,'dev.tsv'))
-        s3.Bucket(bucket_name).download_file(key2, os.path.join(save_path,'test.tsv'))
+        
     except botocore.exceptions.ClientError as e:
         if e.response['Error']['Code'] == "404":
             print("The object does not exist.")
@@ -88,7 +88,7 @@ def download_test_file_from_s3(bucket_name, bucket_prefix, local_path):
     except OSError:
         pass
     try:
-        mybucket.download_file(key2, os.path.join(save_path,'test.tsv'))
+        mybucket.download_file(key3, os.path.join(save_path,'test.tsv'))
     except botocore.exceptions.ClientError as e:
         if e.response['Error']['Code'] == "404":
             print("The object does not exist.")

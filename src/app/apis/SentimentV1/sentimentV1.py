@@ -129,5 +129,5 @@ def run_test_bert():
                                this_id), task_id=this_id)
     return jsonify({
         "task_id": this_id,
-        "status": "Retraining and Fine-Tuning usign BERT is Initiated"
+        "status": "Testing usign BERT is Started. Results uploaded to S3 bucket"
     }), 200
