@@ -62,7 +62,7 @@ def async_test_bert(model_name,
     """
     train a model using BERT pre-trained model
     """
-    text_data_path = API_helpers_nlp.download_a_dir_from_s3(s3_bucket_name,
+    text_data_path = API_helpers_nlp.download_test_file_from_s3(s3_bucket_name,
                                                      s3_bucket_prefix,
                                                      local_path = TEMP_FOLDER)
 
