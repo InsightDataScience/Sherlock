@@ -40,7 +40,7 @@ class sentimentV1_inference_server:
         logging.info("Sentiment Inference Server running")
         FAST_IMDB_MODEL_PATH = os.path.join("app", "models", "SentimentV1","fastimdb","imdb_model.bin")
         logging.info("IMDB Model path:%s",FAST_IMDB_MODEL_PATH)
-        classifier = fasttext.load_model(FAST_IMDB_MODEL_PATH)
+        
         while True:
             queue = db.lrange(settings.TEXT_QUEUE, 0, settings.BATCH_SIZE) #Is this queue different from the Queue in API path
             textIDs = defaultdict(list) #dict to hold sentence and id for a model type
@@ -63,6 +63,7 @@ class sentimentV1_inference_server:
 
 
             if textIDs:
+                classifier = fasttext.load_model(FAST_IMDB_MODEL_PATH)
                 logging.info("* Predicting for {} of Models".format(len(textIDs.keys())))
                 logging.info("* Number of Sentences: {}".format(num_text))
 
