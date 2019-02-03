@@ -190,6 +190,7 @@ class BertTransferLeaner:
         logging.info('***** DATA directory: %s *****',DATA_DIR)
         TRAIN_BATCH_SIZE = 32
         EVAL_BATCH_SIZE = 8
+        PREDICT_BATCH_SIZE = 32
         LEARNING_RATE = 2e-5
         NUM_TRAIN_EPOCHS = 3.0
         WARMUP_PROPORTION = 0.1
@@ -206,7 +207,7 @@ class BertTransferLeaner:
         with open(os.path.join(OUTPUT_DIR,'final_ckpt.txt')) as f:
             content = f.readlines()
             logging.info("***Final_cktp->%s\n",content)
-        test_ckpt = content.split('/')[-1]
+        test_ckpt = content[0].split('/')[-1]
         INIT_CHECKPOINT = os.path.join(BERT_PRETRAINED_DIR, test_ckpt)
         DO_LOWER_CASE = BERT_MODEL.startswith('uncased')
 
@@ -253,7 +254,8 @@ class BertTransferLeaner:
             model_fn=model_fn,
             config=run_config,
             train_batch_size=TRAIN_BATCH_SIZE,
-            eval_batch_size=EVAL_BATCH_SIZE)
+            eval_batch_size=EVAL_BATCH_SIZE,
+            predict_batch_size=PREDICT_BATCH_SIZE)
         
         predict_examples = processor.get_test_examples(DATA_DIR)
         num_actual_predict_examples = len(predict_examples)
