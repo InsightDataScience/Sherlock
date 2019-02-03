@@ -104,7 +104,7 @@ def run_train_bert():
         "status": "Retraining and Fine-Tuning usign BERT is Initiated"
     }), 200
 
-@blueprint.route('/trainbert', methods=['POST'])
+@blueprint.route('/testbert', methods=['POST'])
 def run_test_bert():
     """
     Test sentences using BERT fine tuned model
