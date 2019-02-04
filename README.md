@@ -271,20 +271,20 @@ curl -X POST \
 
 ### 2. Train a new classification model using pre-trained BERT model
 
-**The new text dataset should be stored at S3 first, with the directory architecture in S3 should look like this**:
+**The new text dataset should be stored at S3 first, the directory architecture in S3 should look like this**:
 ```
 .
 ├── YOUR_BUCKET_NAME
 │   ├── train.tsv
-│   ├── dev.tsv
+│   ├── val.tsv
 │   ├── test.tsv		
 ```
 The folder name you give to *YOUR_MODEL_NAME* will be used to identify this model once it get trained.
 
-The name of train, dev and test files  **can't be changed**.
+The name of train, val and test files  **can't be changed**.
 The train and dev file should have below format (without header)-
 id label None Sentence
-1  0     NC   
+1  0     NC   Text
 The test.tsv file should only have id and sentence column (with header)
 **The S3 folders should have public access permission**.
 
@@ -298,3 +298,24 @@ curl -X POST \
   -F train_bucket_name=YOUR_BUCKET_NAME \
   -F train_bucket_prefix=YOUR_MODEL_NAME
 ```
+### 3. Lable all text in a csv file using pre-trained BERT model
+
+**The new test tsv file should be stored at the same S3 bucket as above for that model, directory architecture in S3 should look like this**:
+```
+.
+├── YOUR_BUCKET_NAME
+│   ├── train.tsv
+│   ├── val.tsv
+│   ├── test.tsv		
+```
+To call this API do:
+```bash
+curl -X POST \
+  http://127.0.0.1:3031/sentimentV1/testbert \
+  -H 'Cache-Control: no-cache' \
+  -H 'Postman-Token: 4e90e1d6-de18-4501-a82c-f8a878616b12' \
+  -H 'content-type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW' \
+  -F test_bucket_name=YOUR_BUCKET_NAME \
+  -F test_bucket_prefix=YOUR_MODEL_NAME
+```
+At the end of prediction a file named 'test_results.csv' will be uploaded to the same S3 bucket.
