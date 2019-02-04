@@ -289,6 +289,7 @@ class BertTransferLeaner:
                 num_written_lines += 1
         assert num_written_lines == num_actual_predict_examples
         s3 = boto3.resource('s3')
+        tf.logging.info("Done with prediction uploading results to S3")
         try:
             s3.upload_file(output_predict_file, bucket_name, output_predict_file)
         except Exception as err:
