@@ -291,7 +291,7 @@ class BertTransferLeaner:
         s3 = boto3.resource('s3')
         tf.logging.info("Done with prediction uploading results to S3")
         try:
-            s3.upload_file(output_predict_file, bucket_name, output_predict_file)
+            s3.Bucket(bucket_name).upload_file(output_predict_file, output_predict_file)
         except Exception as err:
             logging.info("Unable to upload to S3")
             logging.info(err)
