@@ -78,6 +78,10 @@ Move to the directory where you cloned *Sherlock* , and run:
 ```bash
 docker-compose up --build
 ```
+Training using BERT runs much faster on GPU with >12GB RAM (Tested with Nvidia K80). To train with GPU run:
+```bash
+docker-compose -f docker-compose-gpu.yml up --build
+```
 
 If everything goes well, you should start seeing the building message of the docker containers:
 ```
