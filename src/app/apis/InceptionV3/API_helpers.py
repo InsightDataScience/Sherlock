@@ -41,7 +41,7 @@ def save_classes_label_dict(label_dict, file_path_name):
     with open(file_path_name, 'w') as fp:
         json.dump(label_dict, fp)
     
-    print "* Helper: Classes Label Json Saved"
+    print "*Helper: Classes Label Json Saved"
 
 def download_a_dir_from_s3(bucket_name, bucket_prefix, local_path):
     """
@@ -51,7 +51,7 @@ def download_a_dir_from_s3(bucket_name, bucket_prefix, local_path):
     
     Will not download if the local folder already exists
     """
-    print "* Helper: Loading Images from S3 {} {}".format(bucket_name,bucket_prefix)
+    print "*Helper: Loading Images from S3 {} {}".format(bucket_name, bucket_prefix)
     output_path = os.path.join(local_path, bucket_prefix)
     
     if not os.path.exists(os.path.join(output_path, 'train')):
@@ -69,8 +69,13 @@ def download_a_dir_from_s3(bucket_name, bucket_prefix, local_path):
                 os.makedirs(save_path)
             except OSError:
                 pass
-            mybucket.download_file(obj.key, os.path.join(save_path, filename))
-            
+            try:
+                mybucket.download_file(obj.key,
+                           os.path.join(save_path, filename))
+            #iterator contains keys for directories and files
+            except OSError:
+                pass
+
     print "* Helper: Images Loaded at: {}".format(output_path)
     return output_path
 
