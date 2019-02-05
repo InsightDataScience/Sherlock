@@ -84,9 +84,9 @@ def run_train_bert():
     Finetune BERT uncased small language model
     """
     s3_bucket_name = request.form.get('train_bucket_name')
-    model_name = request.form.get('model_name')
+    #model_name = request.form.get('model_name')
+    model_name = s3_bucket_name
     local_data_path = os.path.join('./tmp')
-    s3_bucket_prefix = ''
     batch_size = 32
     nb_epoch = 3
 
@@ -96,7 +96,6 @@ def run_train_bert():
     async_train_bert.apply_async((model_name,
                                local_data_path,
                                s3_bucket_name,
-                               s3_bucket_prefix,
                                nb_epoch,
                                batch_size,
                                this_id), task_id=this_id)
@@ -111,9 +110,9 @@ def run_test_bert():
     Test sentences using BERT fine tuned model
     """
     s3_bucket_name = request.form.get('test_bucket_name')
-    model_name = request.form.get('model_name')
+    #model_name = request.form.get('model_name')
+    model_name = s3_bucket_name
     local_data_path = os.path.join('./tmp')
-    s3_bucket_prefix = ''
     batch_size = 32
     nb_epoch = 3
 
@@ -123,7 +122,6 @@ def run_test_bert():
     async_test_bert.apply_async((model_name,
                                local_data_path,
                                s3_bucket_name,
-                               s3_bucket_prefix,
                                nb_epoch,
                                batch_size,
                                this_id), task_id=this_id)

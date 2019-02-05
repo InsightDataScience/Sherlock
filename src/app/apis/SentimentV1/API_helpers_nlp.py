@@ -27,7 +27,7 @@ def save_classes_label_dict(label_dict, file_path_name):
 
     logging.info("* Helper: Classes Label Json Saved")
 
-def download_a_dir_from_s3(bucket_name, bucket_prefix, local_path):
+def download_a_dir_from_s3(bucket_name, local_path):
     """
     download the folder from S3
 
@@ -35,7 +35,7 @@ def download_a_dir_from_s3(bucket_name, bucket_prefix, local_path):
 
     Will not download if the local folder already exists
     """
-    logging.info("* Helper: Loading Text from S3 {} {}".format(bucket_name,bucket_prefix))
+    logging.info("* Helper: Loading Text from S3 {} ".format(bucket_name))
     path = os.path.join(bucket_name,'data')
     output_path = os.path.join(local_path, bucket_name)
     save_path = os.path.join(local_path, path)
@@ -72,7 +72,7 @@ def download_test_file_from_s3(bucket_name, bucket_prefix, local_path):
 
     Will not download if the local folder already exists
     """
-    logging.info("* Helper: Loading Text from S3 {} {}".format(bucket_name,bucket_prefix))
+    logging.info("* Helper: Loading Text from S3 {} ".format(bucket_name))
     path = os.path.join(bucket_name,'data')
     output_path = os.path.join(local_path, bucket_name)
     save_path = os.path.join(local_path, path)

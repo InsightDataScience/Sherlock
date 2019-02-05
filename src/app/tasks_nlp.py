@@ -28,7 +28,6 @@ TEMP_FOLDER = os.path.join('./tmp')
 def async_train_bert(model_name,
                 local_data_path,
                 s3_bucket_name,
-                s3_bucket_prefix,
                 nb_epoch,
                 batch_size,
                 id):
@@ -36,8 +35,7 @@ def async_train_bert(model_name,
     train a model using BERT pre-trained model
     """
     text_data_path = API_helpers_nlp.download_a_dir_from_s3(s3_bucket_name,
-                                                     s3_bucket_prefix,
-                                                     local_path = TEMP_FOLDER)
+                                                        local_path = TEMP_FOLDER)
 
     logging.info('*Text Data Path:%s',text_data_path)
     try:
@@ -55,7 +53,6 @@ def async_train_bert(model_name,
 def async_test_bert(model_name,
                 local_data_path,
                 s3_bucket_name,
-                s3_bucket_prefix,
                 nb_epoch,
                 batch_size,
                 id):
@@ -63,7 +60,6 @@ def async_test_bert(model_name,
     train a model using BERT pre-trained model
     """
     text_data_path = API_helpers_nlp.download_test_file_from_s3(s3_bucket_name,
-                                                     s3_bucket_prefix,
                                                      local_path = TEMP_FOLDER)
 
     logging.info('*Text Data Path:%s',text_data_path)
