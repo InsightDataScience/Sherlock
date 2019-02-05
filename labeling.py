@@ -131,10 +131,11 @@ def pickleResults(path,fileName,data):
     f.close()
     return True
 
-def wait_for_training(response,t=20):
+def wait_for_training(response, t=20, t_max=900):
     status = checkStatus(response['task_id'])
     while not status:
         time.sleep(t)
+        t += t / 10
         status = checkStatus(response['task_id'])
     return 1
 
