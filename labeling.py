@@ -125,7 +125,7 @@ def runInferenceOnDict(file_dict, model_name='base',
 
 def pickleResults(path,fileName,data):
     if not os.path.exists(path):
-        os.mkdir(path)
+        os.makedirs(path)
     f = open(os.path.join(path,fileName),'w+')
     pickle.dump(data,f)
     f.close()
@@ -138,6 +138,15 @@ def wait_for_training(response, t=20, t_max=900):
         t += t / 10
         status = checkStatus(response['task_id'])
     return 1
+
+
+def magicLabel(file_names, N, reserve_dict,model='base'):
+    if model == 'base':
+        td = chooseNFromEachClass(file_names, N-1)
+        for k in file_names:
+            td[k].append(reserve_dict[k][0])
+            del reserve_dict[k][0]
+        return td
 
     
 def main(model_name, base_model='inceptionV3', N_initial=5,
@@ -153,30 +162,35 @@ def main(model_name, base_model='inceptionV3', N_initial=5,
     
     # load the images - array of Images
     class_names, file_names = loadDirectory('./' + model_name + '/train/')
-    validate_class_names, validate_file_names = loadDirectory(
-        './' + model_name + '/val/')
-    class_names,test_file_names = loadDirectory(
-        './' + model_name + '/test/')
+    validate_class_names, validate_file_names = loadDirectory('./' +
+                                                             model_name + '/val/')
+    class_names, test_file_names = loadDirectory('./' + model_name + '/test/')
+
+
+    reserve_dict = {x : file_names[x][:iterations] for x in class_names}
+    file_names   = {x : file_names[x][iterations:] for x in class_names}
     
     # first training pass takes N_initial of each class
-    labeled_dict = {0:{}}
-    train_dict = chooseNFromEachClass(file_names,N_initial)
+
+    train_dict = magicLabel(file_names, N_initial, reserve_dict,'base')
+    labeled_dict = {0: train_dict}
+
     uploadToS3(train_dict,os.path.join('models',model_name,'train'))
     uploadToS3(validate_file_names, os.path.join('models',model_name,'val'))
-    labeled_dict[0] = train_dict
+
     
 
     r = trainNewModel(model_name)
     wait_for_training(r)
     res = {0: runInferenceOnDict(test_file_names, model_name)}
 
-    pickleResults(os.path.join(output_path,str(0)), 'res.pickle',
-                  [res,labeled_dict])
+    saveFileName = 'r{}.pickle'.format(0)
+    pickleResults(output_path, saveFileName, [res,labeled_dict])
     
 
     for i in range(iterations):
         rt_path = 'rt/' + model_name + '-' + str(i+1)+'/models'
-        train_dict = chooseNFromEachClass(file_names,N_initial)
+        train_dict = magicLabel(file_names, N_initial, reserve_dict,'base')
         labeled_dict[i+1] = train_dict
         uploadToS3(train_dict,os.path.join(rt_path,model_name,'train'))
         uploadToS3(validate_file_names,os.path.join(rt_path,model_name,'val'))
@@ -185,8 +199,8 @@ def main(model_name, base_model='inceptionV3', N_initial=5,
         wait_for_training(r)
         res = {i+1: runInferenceOnDict(test_file_names,model_name)}
 
-        pickleResults(os.path.join(output_path,str(0)), 'res.pickle',
-                      [res,labeled_dict])
+        saveFileName = 'r{}.pickle'.format(i+1)
+        pickleResults(output_path, saveFileName, [res,labeled_dict])
             
 
 
