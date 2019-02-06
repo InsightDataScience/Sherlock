@@ -12,12 +12,13 @@ def task_info():
     check the progress of the remote tasks by its id
     """
     task_ids = request.get_json()
+    print "task_ids = {}".format(task_ids)
     task_results = []
     
     for each_id in task_ids:
         this_task = michaniki_celery_app.AsyncResult(each_id)
         this_status = str(this_task.state)
-        
+        print "this_stats = {}".format(this_status)
         if this_status == "SUCCESS":
             # get the training and validation acc
             this_res = this_task.get()
