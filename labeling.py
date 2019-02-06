@@ -228,4 +228,16 @@ if __name__ == '__main__':
 
     
 
-
+def checkImages(images):
+    for each_image in images:
+        print each_image
+        iamge_name = each_image.split('/')[-1]
+        this_img = image.load_img(each_image, target_size = (299, 299))
+        
+        # image pre-processing
+        x = np.expand_dims(image.img_to_array(this_img), axis=0)
+        x = preprocess_input(x)
+        x = x.copy(order="C")
+        
+        # encode
+        x = base64_encode_image(x)
