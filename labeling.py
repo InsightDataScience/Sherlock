@@ -170,9 +170,9 @@ def main(model_name, base_model='inceptionV3', N_initial=5,
     wait_for_training(r)
     res = {0: runInferenceOnDict(test_file_names, model_name)}
 
-    pickle_file = open(output_path+'/0/res.pickle','w+')
-    pickle.dump([res,labeled_dict], pickle_file)
-    pickle_file.close()
+    pickleResults(os.path.join(output_path,str(0)), 'res.pickle',
+                  [res,labeled_dict])
+    
 
     for i in range(iterations):
         rt_path = 'rt/' + model_name + '-' + str(i+1)+'/models'
@@ -184,10 +184,10 @@ def main(model_name, base_model='inceptionV3', N_initial=5,
         r = retrainModel(model_name,rt_path)
         wait_for_training(r)
         res = {i+1: runInferenceOnDict(test_file_names,model_name)}
-        
-        pickle_file = open(output_path+'/'+ str(i+1) +'/res.pickle','w+')
-        pickle.dump([res,labeled_dict], pickle_file)
-        pickle_file.close()
+
+        pickleResults(os.path.join(output_path,str(0)), 'res.pickle',
+                      [res,labeled_dict])
+            
 
 
 
