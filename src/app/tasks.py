@@ -32,7 +32,7 @@ def async_retrain(model_name,
     retrain model
     resume training
     """    
-    # download image data to local 
+    # download image data to local
     image_data_path = API_helpers.download_a_dir_from_s3(s3_bucket_name,
                                                      s3_bucket_prefix, 
                                                      local_path = TEMP_FOLDER)
