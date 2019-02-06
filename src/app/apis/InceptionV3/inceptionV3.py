@@ -118,12 +118,16 @@ def retrain():
     @args: train_bucket_url: URL pointing to the folder for training data on S3
     @args: model_name: the name of the model want to be retraiend, the folder must be exsit
     """
+    print "retrain line 1"
     s3_bucket_name = request.form.get('train_bucket_name')
+    print "s3 bucket name = {}".format(s3_bucket_name)
     s3_bucket_prefix = request.form.get('train_bucket_prefix')
+    print "s3 bucket prefix = {}".format(s3_bucket_prefix)
     nb_epoch = request.form.get('nb_epoch')
     batch_size = request.form.get('batch_size')
     
     model_name = s3_bucket_prefix.split('/')[-1]
+    print "model_name = {}".format(model_name)
     local_data_path = os.path.join('./tmp')
     
     # create a celer task id
@@ -131,7 +135,7 @@ def retrain():
     # download the folder in the url
     # return the path of the image files
     async_retrain.apply_async((model_name, 
-                               local_data_path,
+          #                     local_data_path,
                                s3_bucket_name,
                                s3_bucket_prefix,
                                nb_epoch,
