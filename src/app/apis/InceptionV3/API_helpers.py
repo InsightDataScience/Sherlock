@@ -69,7 +69,10 @@ def download_a_dir_from_s3(bucket_name, bucket_prefix, local_path):
                 os.makedirs(save_path)
             except OSError:
                 pass
-            mybucket.download_file(obj.key, os.path.join(save_path, filename))
+            try:
+                mybucket.download_file(obj.key, os.path.join(save_path, filename))
+            except OSError:
+                pass  
             
     print "* Helper: Images Loaded at: {}".format(output_path)
     return output_path

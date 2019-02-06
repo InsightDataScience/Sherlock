@@ -2,7 +2,10 @@ version: '2.3'
 
 services:
   michaniki_client:
-    build: ./src
+    build:
+      context: ./src
+      dockerfile: Dockerfile-gpu
+    runtime: nvidia
     ports:
       - "3031:3031"
     environment:
@@ -24,7 +27,10 @@ services:
       - michaniki
 
   inference_server:
-    build: ./src
+    build:
+      context: ./src
+      dockerfile: Dockerfile-gpu
+    runtime: nvidia
     environment:
       - REDIS_URL="redis://redis"
       - REDIS_PORT=6379
@@ -45,6 +51,7 @@ services:
     build:
       context: ./src
       dockerfile: Dockerfile-sentiment
+    runtime: nvidia
     environment:
       - REDIS_URL="redis://redis"
       - REDIS_PORT=6379
@@ -60,7 +67,10 @@ services:
       - redis
 
   celery_worker:
-    build: ./src
+    build:
+      context: ./src
+      dockerfile: Dockerfile-gpu
+    runtime: nvidia
     command: ['celery', '-A', 'app.celeryapp:michaniki_celery_app', 'worker', '-l', 'info']
     volumes:
       - ./src:/opt/src
