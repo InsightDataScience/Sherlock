@@ -15,6 +15,7 @@ import optimization
 import run_classifier
 import tokenization
 import tensorflow as tf
+import csv
 
 import settings
 import datetime
@@ -28,6 +29,17 @@ BERT_MODEL_PATH = app.config['BERT_MODEL_PATH']
 class BertTransferLeaner:
     def __init__(self, model_name):
         self.model_name = model_name
+    
+    def getlabel(self,data_dir):
+        with tf.gfile.Open(os.path.join(data_dir, "train.tsv"),"r") as f:
+        reader = csv.reader(f, delimiter="\t", quotechar=None)
+        label = []
+        for line in reader:
+            line_label = line[1]
+            if line_label not in label:
+                label.append(line_label)
+        return label
+
 
     def traineval_model(self, local_dir,
                        nb_epoch,
@@ -71,7 +83,9 @@ class BertTransferLeaner:
         bert_config = modeling.BertConfig.from_json_file(BERT_CONFIG_FILE)
         tf.gfile.MakeDirs(OUTPUT_DIR)
         processor = run_classifier.ColaProcessor()
-        label_list = processor.get_labels()
+        #label_list = processor.get_labels()
+        label_list = self.getlabel(DATA_DIR)
+        print label_list
         tokenizer = tokenization.FullTokenizer(
         vocab_file=VOCAB_FILE, do_lower_case=DO_LOWER_CASE)
 
@@ -215,7 +229,8 @@ class BertTransferLeaner:
         bert_config = modeling.BertConfig.from_json_file(BERT_CONFIG_FILE)
         tf.gfile.MakeDirs(OUTPUT_DIR)
         processor = run_classifier.ColaProcessor()
-        label_list = processor.get_labels()
+        #label_list = processor.get_labels()
+        label_list = self.getlabel()
         tokenizer = tokenization.FullTokenizer(
         vocab_file=VOCAB_FILE, do_lower_case=DO_LOWER_CASE)
 
