@@ -165,7 +165,7 @@ def main(model_name, base_model='inceptionV3', N_initial=5,
     inference_url = ip_addr + base_model + '/predict'
     status_url = ip_addr + 'tasks/info'
     retrain_url=ip_addr + 'inceptionV3/retrain'
-    queryInferenceServer('hotdog.jpg', model_name='base',url=model_inference_url)
+    queryInferenceServer('hotdog.jpg', model_name='base',url=inference_url)
     # load the images - array of Images
                   
     class_names, file_names = loadDirectory('./' + model_name + '/train/')
