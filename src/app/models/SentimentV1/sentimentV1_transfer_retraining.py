@@ -152,6 +152,8 @@ class BertTransferLeaner:
         # Do Eval
         logging.info('Starting Eval..')
         eval_examples = processor.get_dev_examples(DATA_DIR)
+        label_list = self.getlabel(DATA_DIR)
+        print label_list
         num_actual_eval_examples = len(eval_examples)
         eval_file = os.path.join(OUTPUT_DIR, "eval.tf_record")
         run_classifier.file_based_convert_examples_to_features(
