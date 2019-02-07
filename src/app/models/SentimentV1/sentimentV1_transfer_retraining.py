@@ -32,12 +32,12 @@ class BertTransferLeaner:
     
     def getlabel(self,data_dir):
         with tf.gfile.Open(os.path.join(data_dir, "train.tsv"),"r") as f:
-        reader = csv.reader(f, delimiter="\t", quotechar=None)
-        label = []
-        for line in reader:
-            line_label = line[1]
-            if line_label not in label:
-                label.append(line_label)
+            reader = csv.reader(f, delimiter="\t", quotechar=None)
+            label = []
+            for line in reader:
+                line_label = line[1]
+                if line_label not in label:
+                    label.append(line_label)
         return label
 
 
