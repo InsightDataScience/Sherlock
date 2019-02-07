@@ -46,9 +46,9 @@ def loadDirectory(path):
     # all directory names in path are class names
     # all files inside a directory share label
     class_paths = glob.glob(path + '/*')
-    class_names = list(map(lambda x: x.split('/')[-1], class_paths))
+    class_names = list(map(lambda x: os.path.split(x)[-1], class_paths))
     #there might be a bug in the following line...maybe path.join is better
-    file_names = {x: glob.glob(path + x + '/*') for x in class_names}
+    file_names = {x: glob.glob(os.path.join(path,x,'*') for x in class_names}
     return class_names, file_names
 
 
@@ -131,12 +131,13 @@ def pickleResults(path,fileName,data):
     f.close()
     return True
 
-def wait_for_training(response, t=20, t_max=900):
-    status = checkStatus(response['task_id'])
+def wait_for_training(response, t=20, t_max=900,
+                      url='http://127.0.0.1:3031/tasks/info'):
+    status = checkStatus(response['task_id'],url)
     while not status:
         time.sleep(t)
         t += t / 10
-        status = checkStatus(response['task_id'])
+        status = checkStatus(response['task_id'],url)
     return 1
 
 
@@ -150,7 +151,8 @@ def magicLabel(file_names, N, reserve_dict,model='base'):
 
     
 def main(model_name, base_model='inceptionV3', N_initial=5,
-         iterations=3, labelsPerRound=5, bucket='insightai2019'):
+         iterations=3, labelsPerRound=5, bucket='insightai2019',
+         ip_addr='http:127.0.0.1:3031'):
 #    model_name = 'tomato_potato'
     model_name = 'imgnetmodel'
     base_model = 'inceptionV3'
@@ -159,14 +161,18 @@ def main(model_name, base_model='inceptionV3', N_initial=5,
     labelsPerRound = 25
     bucket = 'insightai2019'
     output_path = './results/' + model_name
-    
+    ip_addr='http://127.0.0.1:3031/'
+    transfer_url = ip_addr + base_model + '/transfer'
+    inference_url = ip_addr + base_model + '/predict'
+    status_url = ip_addr + 'tasks/info'
+    retrain_url=ip_addr + 'inceptionV3/retrain'
+    queryInferenceServer('hotdog.jpg', model_name='base',model_inference_url)
     # load the images - array of Images
+                  
     class_names, file_names = loadDirectory('./' + model_name + '/train/')
     validate_class_names, validate_file_names = loadDirectory('./' +
                                                              model_name + '/val/')
     class_names, test_file_names = loadDirectory('./' + model_name + '/test/')
-    class_names, test_file_names = loadDirectory(tpath)
-    tpath = './test/imgnet/models/imgnetmodel/test'
 
     reserve_dict = {x : file_names[x][:iterations] for x in class_names}
     file_names   = {x : file_names[x][iterations:] for x in class_names}
