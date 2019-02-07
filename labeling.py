@@ -47,6 +47,7 @@ def loadDirectory(path):
     # all files inside a directory share label
     class_paths = glob.glob(path + '/*')
     class_names = list(map(lambda x: x.split('/')[-1], class_paths))
+    #there might be a bug in the following line...maybe path.join is better
     file_names = {x: glob.glob(path + x + '/*') for x in class_names}
     return class_names, file_names
 
@@ -104,8 +105,7 @@ def uploadToS3(file_dict, key_path, bucket_name='insightai2019'):
 def chooseNFromEachClass(file_dict, n):
     ret_dict = {}
     for class_name in file_dict:
-        if file_dict[class_name]:
-            ret_dict[class_name] = []
+        ret_dict[class_name] = []
         for i in range(n):
             if file_dict[class_name]:
                 ret_dict[class_name].append(file_dict[class_name][0])
@@ -143,7 +143,7 @@ def wait_for_training(response, t=20, t_max=900):
 def magicLabel(file_names, N, reserve_dict,model='base'):
     if model == 'base':
         td = chooseNFromEachClass(file_names, N-1)
-        for k in file_names:
+        for k in reserve_dict:
             td[k].append(reserve_dict[k][0])
             del reserve_dict[k][0]
         return td
@@ -165,7 +165,8 @@ def main(model_name, base_model='inceptionV3', N_initial=5,
     validate_class_names, validate_file_names = loadDirectory('./' +
                                                              model_name + '/val/')
     class_names, test_file_names = loadDirectory('./' + model_name + '/test/')
-
+    class_names, test_file_names = loadDirectory(tpath)
+    tpath = './test/imgnet/models/imgnetmodel/test'
 
     reserve_dict = {x : file_names[x][:iterations] for x in class_names}
     file_names   = {x : file_names[x][iterations:] for x in class_names}
