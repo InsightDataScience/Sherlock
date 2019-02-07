@@ -47,8 +47,7 @@ def loadDirectory(path):
     # all files inside a directory share label
     class_paths = glob.glob(path + '/*')
     class_names = list(map(lambda x: os.path.split(x)[-1], class_paths))
-    #there might be a bug in the following line...maybe path.join is better
-    file_names = {x: glob.glob(os.path.join(path,x,'*') for x in class_names}
+    file_names = {x: glob.glob(os.path.join(path,x,'*')) for x in class_names}
     return class_names, file_names
 
 
@@ -166,7 +165,7 @@ def main(model_name, base_model='inceptionV3', N_initial=5,
     inference_url = ip_addr + base_model + '/predict'
     status_url = ip_addr + 'tasks/info'
     retrain_url=ip_addr + 'inceptionV3/retrain'
-    queryInferenceServer('hotdog.jpg', model_name='base',model_inference_url)
+    queryInferenceServer('hotdog.jpg', model_name='base',url=model_inference_url)
     # load the images - array of Images
                   
     class_names, file_names = loadDirectory('./' + model_name + '/train/')
