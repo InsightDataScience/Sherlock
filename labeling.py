@@ -148,7 +148,38 @@ def magicLabel(file_names, N, reserve_dict,model='base'):
             del reserve_dict[k][0]
         return td
 
-    
+
+def chooseN(file_dict, n):
+    ret_dict = {}
+    for class_name in file_dict:
+        if file_dict[class_name]:
+            ret_dict[class_name] = file_dict[class_name][:n]
+                
+            
+    return ret_dict
+
+
+def multiModelUpload(model_name, base_model='inceptionV3', nInitial=20,
+         iterations=5, labelsPerRound=10, bucket='insightai2019',
+         ip_addr='http:127.0.0.1:3031'):
+    class_names, file_names = loadDirectory('./' + model_name + '/train/')
+    validate_class_names, validate_file_names = loadDirectory('./' +
+                                                             model_name + '/val/')
+    class_names, test_file_names = loadDirectory('./' + model_name + '/test/')
+            
+    for i in range(iterations):
+        mn = "{}-{}".format(model_name,i)
+        train_dict = chooseN(file_names,nInitial + i*labelsPerRound)
+        uploadToS3(train_dict,os.path.join('models',mn,'train'))
+        uploadToS3(validate_file_names, os.path.join('models',mn,'val'))
+
+def multiModelTrain(model_name, base_model='inceptionV3', nInitial=20,
+         iterations=5, labelsPerRound=10, bucket='insightai2019',
+         ip_addr='http:127.0.0.1:3031'):
+    for i in range(iterations):
+        mn = "{}-{}".format(model_name,i)
+        r = trainNewModel(mn)
+        
 def main(model_name, base_model='inceptionV3', N_initial=5,
          iterations=3, labelsPerRound=5, bucket='insightai2019',
          ip_addr='http:127.0.0.1:3031'):
@@ -192,9 +223,9 @@ def main(model_name, base_model='inceptionV3', N_initial=5,
 
     saveFileName = 'r{}.pickle'.format(0)
     pickleResults(output_path, saveFileName, [res,labeled_dict])
-    
+    backup = {x : file_names[x][:] for x in file_names}
 
-    for i in range(iterations):
+    for i in range(iterations-1):
         rt_path = 'rt/' + model_name + '-' + str(i+1)+'/models'
         train_dict = magicLabel(file_names, N_initial, reserve_dict,'base')
         labeled_dict[i+1] = train_dict
@@ -203,61 +234,13 @@ def main(model_name, base_model='inceptionV3', N_initial=5,
         print rt_path
         r = retrainModel(model_name,rt_path)
         wait_for_training(r)
-        res = {i+1: runInferenceOnDict(test_file_names,model_name)}
+        res[i+1] = runInferenceOnDict(test_file_names,model_name)
 
         saveFileName = 'r{}.pickle'.format(i+1)
         pickleResults(output_path, saveFileName, [res,labeled_dict])
             
-
-
-
-    hotdog = {
-  "data": {
-    "prediction": [
-      {
-        "label": "hotdog, hot dog, red hot", 
-        "probability": 0.9803026914596558
-      }, 
-      {
-        "label": "French loaf", 
-        "probability": 0.005108409561216831
-      }, 
-      {
-        "label": "ice lolly, lolly, lollipop, popsicle", 
-        "probability": 0.0012415212113410234
-      }, 
-      {
-        "label": "matchstick", 
-        "probability": 0.0009466637275181711
-      }, 
-      {
-        "label": "meat loaf, meatloaf", 
-        "probability": 0.000607048103120178
-      }
-    ], 
-    "success": "true"
-  }
-}
-
     # display benchmarks
     # pickle data
 
 if __name__ == '__main__':
     main('tomato_potato')
-        
-
-    
-
-def checkImages(images):
-    for each_image in images:
-        print each_image
-        iamge_name = each_image.split('/')[-1]
-        this_img = image.load_img(each_image, target_size = (299, 299))
-        
-        # image pre-processing
-        x = np.expand_dims(image.img_to_array(this_img), axis=0)
-        x = preprocess_input(x)
-        x = x.copy(order="C")
-        
-        # encode
-        x = base64_encode_image(x)
