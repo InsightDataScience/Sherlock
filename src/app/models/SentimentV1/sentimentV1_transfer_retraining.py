@@ -39,6 +39,28 @@ class BertTransferLeaner:
                 if line_label not in label:
                     label.append(line_label)
         return label
+    
+    def cal_test_examples(self,data_dir,firstlabel,set_type):
+        examples = []
+        with tf.gfile.Open(os.path.join(data_dir, "test.tsv"), "r") as f:
+            reader = csv.reader(f, delimiter="\t", quotechar=None)
+            lines = []
+            for line in reader:
+                lines.append(line)
+        for (i, line) in enumerate(lines):
+            # Only the test set has a header
+            if set_type == "test" and i == 0:
+                continue
+            guid = "%s-%s" % (set_type, i)
+            if set_type == "test":
+                text_a = tokenization.convert_to_unicode(line[1])
+                label = firstlabel
+            else:
+                text_a = tokenization.convert_to_unicode(line[3])
+                label = tokenization.convert_to_unicode(line[1])
+            examples.append(
+                InputExample(guid=guid, text_a=text_a, text_b=None, label=label))
+        return examples
 
 
     def traineval_model(self, local_dir,
@@ -270,7 +292,8 @@ class BertTransferLeaner:
             eval_batch_size=EVAL_BATCH_SIZE,
             predict_batch_size=PREDICT_BATCH_SIZE)
         
-        predict_examples = processor.get_test_examples(DATA_DIR)
+        #predict_examples = processor.get_test_examples(DATA_DIR)
+        predict_examples = self.cal_test_examples(DATA_DIR,label_list[0],"test")
         num_actual_predict_examples = len(predict_examples)
         predict_file = os.path.join(OUTPUT_DIR, "predict.tf_record")
         run_classifier.file_based_convert_examples_to_features(predict_examples, label_list,
