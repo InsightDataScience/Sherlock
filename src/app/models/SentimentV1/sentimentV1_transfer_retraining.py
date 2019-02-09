@@ -230,7 +230,7 @@ class BertTransferLeaner:
         tf.gfile.MakeDirs(OUTPUT_DIR)
         processor = run_classifier.ColaProcessor()
         #label_list = processor.get_labels()
-        label_list = self.getlabel()
+        label_list = self.getlabel(DATA_DIR)
         tokenizer = tokenization.FullTokenizer(
         vocab_file=VOCAB_FILE, do_lower_case=DO_LOWER_CASE)
 
