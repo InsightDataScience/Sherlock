@@ -71,7 +71,7 @@ services:
       context: ./src
       dockerfile: Dockerfile-gpu
     runtime: nvidia
-    command: ['celery', '-A', 'app.celeryapp:michaniki_celery_app', 'worker', '-l', 'info']
+    command: ['celery', '-A', 'app.celeryapp:michaniki_celery_app', 'worker', '-l', 'info','--max-tasks-per-child','1']
     volumes:
       - ./src:/opt/src
     networks:
