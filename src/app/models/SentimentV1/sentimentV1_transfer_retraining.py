@@ -231,6 +231,7 @@ class BertTransferLeaner:
         processor = run_classifier.ColaProcessor()
         #label_list = processor.get_labels()
         label_list = self.getlabel(DATA_DIR)
+        print label_list
         tokenizer = tokenization.FullTokenizer(
         vocab_file=VOCAB_FILE, do_lower_case=DO_LOWER_CASE)
 
