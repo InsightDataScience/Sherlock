@@ -153,9 +153,7 @@ def chooseN(file_dict, n):
     ret_dict = {}
     for class_name in file_dict:
         if file_dict[class_name]:
-            ret_dict[class_name] = file_dict[class_name][:n]
-                
-            
+            ret_dict[class_name] = file_dict[class_name][:n]                         
     return ret_dict
 
 
@@ -166,16 +164,13 @@ def multiModelUpload(model_name, base_model='inceptionV3', nInitial=20,
     validate_class_names, validate_file_names = loadDirectory('./' +
                                                              model_name + '/val/')
     class_names, test_file_names = loadDirectory('./' + model_name + '/test/')
-            
     for i in range(iterations):
         mn = "{}-{}".format(model_name,i)
         train_dict = chooseN(file_names,nInitial + i*labelsPerRound)
         uploadToS3(train_dict,os.path.join('models',mn,'train'))
         uploadToS3(validate_file_names, os.path.join('models',mn,'val'))
 
-def multiModelTrain(model_name, base_model='inceptionV3', nInitial=20,
-         iterations=5, labelsPerRound=10, bucket='insightai2019',
-         ip_addr='http:127.0.0.1:3031'):
+def multiModelTrain(model_name, iterations=5):
     for i in range(iterations):
         mn = "{}-{}".format(model_name,i)
         r = trainNewModel(mn)
@@ -184,7 +179,9 @@ def main(model_name, base_model='inceptionV3', N_initial=5,
          iterations=3, labelsPerRound=5, bucket='insightai2019',
          ip_addr='http:127.0.0.1:3031'):
 #    model_name = 'tomato_potato'
-    model_name = 'imgnetmodel'
+#    model_name = 'imgnetmodel'
+    model_name = 'imgnet2'
+    
     base_model = 'inceptionV3'
     N_initial = 25
     iterations = 8
@@ -196,9 +193,9 @@ def main(model_name, base_model='inceptionV3', N_initial=5,
     inference_url = ip_addr + base_model + '/predict'
     status_url = ip_addr + 'tasks/info'
     retrain_url=ip_addr + 'inceptionV3/retrain'
-    queryInferenceServer('hotdog.jpg', model_name='base',url=inference_url)
+
     # load the images - array of Images
-                  
+    model_name = 'HotWineBike'
     class_names, file_names = loadDirectory('./' + model_name + '/train/')
     validate_class_names, validate_file_names = loadDirectory('./' +
                                                              model_name + '/val/')
@@ -214,8 +211,6 @@ def main(model_name, base_model='inceptionV3', N_initial=5,
 
     uploadToS3(train_dict,os.path.join('models',model_name,'train'))
     uploadToS3(validate_file_names, os.path.join('models',model_name,'val'))
-
-    
 
     r = trainNewModel(model_name)
     wait_for_training(r)
@@ -244,3 +239,9 @@ def main(model_name, base_model='inceptionV3', N_initial=5,
 
 if __name__ == '__main__':
     main('tomato_potato')
+
+
+
+#HotCatBike = 2909.00191564s: (0.8719101123595505 training acc, 0.6842105263157895 validation acc
+queryInferenceServer(fileName, model_name='base')
+queryInferenceServer(fileName, model_name='imgnet2')
