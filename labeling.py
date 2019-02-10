@@ -174,7 +174,25 @@ def multiModelTrain(model_name, iterations=5):
     for i in range(iterations):
         mn = "{}-{}".format(model_name,i)
         r = trainNewModel(mn)
-        
+
+def cluster_label(file_names,your_model,n):
+    feature_list = []
+    for f in file_names:
+        img = image.load_img(f,target_size=(299, 299))
+
+        x = np.expand_dims(image.img_to_array(img), axis=0)
+        x = preprocess_input(x)
+#        x = x.copy(order="C")
+
+        feature = your_model.predict(x)
+        feature_np = np.array(feature)
+        feature_list.append(feature_np.flatten())
+
+    feature_list_np = np.array(feature_list)
+    kmeans = KMeans(n_clusters=n, random_state=0).fit(feature_list_np)
+    return kmeans
+
+    
 def main(model_name, base_model='inceptionV3', N_initial=5,
          iterations=3, labelsPerRound=5, bucket='insightai2019',
          ip_addr='http:127.0.0.1:3031'):
