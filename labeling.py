@@ -185,8 +185,9 @@ def multiModelTrain(model_name, iterations=5):
 def feature_extraction(file_names,your_model):
     feature_list = []
     for f in file_names:
+        print f
         img = image.load_img(f,target_size=(299, 299))
-
+        
         x = np.expand_dims(image.img_to_array(img), axis=0)
         x = preprocess_input(x)
 #        x = x.copy(order="C")
@@ -237,16 +238,51 @@ def cluster_label(file_names,your_model,n):
     return kmeans
 
 
+def randomImagesLoop(model_name, base_model='inceptionV3', N_initial=100,
+                     bucket='insightai2019', ip_addr='http:127.0.0.1:3031'):
+    #main body for running random 
+    output_path = './results/' + model_name
+    transfer_url = ip_addr + base_model + '/transfer'
+    inference_url = ip_addr + base_model + '/predict'
+    status_url = ip_addr + 'tasks/info'
+
+    class_names, file_names = loadDirectory('./' + model_name + '/train/')
+    validate_class_names, validate_file_names = loadDirectory('./' +
+                                                             model_name + '/val/')
+    class_names, test_file_names = loadDirectory('./' + model_name + '/test/')
+
+    train_dict = chooseN(file_names, N_initial)
+
+    uploadToS3(train_dict,os.path.join('models',model_name,'train'))
+    uploadToS3(validate_file_names, os.path.join('models',model_name,'val'))
+    
+    r = trainNewModel(model_name, bucket_name='insightai2019', path_prefix='models',
+                         url=transfer_url)
+    wait_for_training(r)
+    rid = r['task_id']
+    response = requests.post(status_url,json={rid:rid})
+    rAcc = response.json()
+    testRandom = runInferenceOnDict(test_file_names, model_name)
+    accRandom = []
+    for k in testRandom:
+        accRandom.append(computeAccuracy(testRandom,k))
+        
+    saveFileName = 'r{}.pickle'.format(0)
+    pickleResults(output_path, saveFileName, [rAcc,testRandom])
+    return rAcc, testRandom
+    
 def main(model_name, base_model='inceptionV3', N_initial=5,
-         iterations=3, labelsPerRound=5, bucket='insightai2019',
+         iterations=1, labelsPerRound=5, bucket='insightai2019',
          ip_addr='http:127.0.0.1:3031'):
 #    model_name = 'tomato_potato'
 #    model_name = 'imgnetmodel'
 #    model_name = 'imgnet2'
-    model_name = 'HotWineBike'
+#    model_name = 'HotWineBike'
+#    model_name = 'clusteredHotWineBike'
+    model_name = 'HotWineBike1kRandom'
     base_model = 'inceptionV3'
     N_initial = 25
-    iterations = 8
+    iterations = 1
     labelsPerRound = 25
     bucket = 'insightai2019'
     output_path = './results/' + model_name
@@ -258,12 +294,12 @@ def main(model_name, base_model='inceptionV3', N_initial=5,
     iv3 = InceptionV3(weights='imagenet',input_shape=(299,299,3))
     iv3_topless = InceptionV3(include_top=False, weights='imagenet',input_shape=(299,299,3))
     # load the images - array of Images
-    model_name = 'HotWineBike'
+    
     class_names, file_names = loadDirectory('./' + model_name + '/train/')
     validate_class_names, validate_file_names = loadDirectory('./' +
                                                              model_name + '/val/')
     class_names, test_file_names = loadDirectory('./' + model_name + '/test/')
-    
+    N_initial = 333
     reserve_dict = {x : file_names[x][:iterations] for x in class_names}
     file_names   = {x : file_names[x][iterations:] for x in class_names}
 
@@ -279,7 +315,7 @@ def main(model_name, base_model='inceptionV3', N_initial=5,
         file_list.extend(file_names[k])
         file_labels.extend([k] * len(file_names[k]))
     unlabeledFeatures = feature_extraction(file_list, iv3_topless)
-    r1 = pickPoints(unlabeledFeatures, iv3_topless, 20)
+    r1000 = pickPoints(unlabeledFeatures, iv3_topless, 1000)
     labeledFiles = [file_list[idx] for idx in r1]
     labeledFeatures = feature_extraction(labeledFiles, iv3_topless)
 
@@ -290,9 +326,37 @@ def main(model_name, base_model='inceptionV3', N_initial=5,
     r3 = pickPoints(unlabeledFeatures, iv3_topless, 200, labeledFeatures=labeledFeatures)
     labeledFiles.extend([file_list[idx] for idx in r3])
     labeledFeatures = feature_extraction(labeledFiles, iv3_topless)
+
+    uploadDict = {k :[] for k in class_names}
+    for idx in r1:
+        uploadDict[file_labels[idx]].append(file_list[idx])
+    uploadToS3(uploadDict,os.path.join('models',model_name,'train'))
+    uploadToS3(validate_file_names, os.path.join('models',model_name,'val'))
     
-    r = trainNewModel(model_name)
+    r = trainNewModel(model_name, bucket_name='insightai2019', path_prefix='models',
+                         url=transfer_url)
+    rRandom1k = trainNewModel(model_name, bucket_name='insightai2019', path_prefix='models',
+                         url=transfer_url)
+    rid = rRandom1k['task_id']
+    response = requests.post(status_url,json={rid:rid})
+    random1kTrainAcc = response.json()#83.6 training, 81.6 validation
+    test1kRandom = runInferenceOnDict(test_file_names, model_name)
+    acc1kRandom = []
+    for k in test1kRandom:
+        acc1kRandom.append(computeAccuracy(test1kRandom,k))
+
+    #74,72,100 test accuracy 1k non random
     wait_for_training(r)
+    rid = train1k['task_id']
+    response = requests.post(status_url,json={rid:rid})
+    train1kAcc = response.json()#83.6 training, 81.6 validation
+    test1kRes = runInferenceOnDict(test_file_names, model_name)
+
+    random_model_name = 'HotWineBike'
+    test2kRandom = runInferenceOnDict(test_file_names, random_model_name)
+    accRandom = []
+    for k in test2kRandom:
+        accRandom.append(computeAccuracy(test2kRandom,k))
     res = {0: runInferenceOnDict(test_file_names, model_name)}
 
     saveFileName = 'r{}.pickle'.format(0)
