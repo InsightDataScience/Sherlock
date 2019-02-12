@@ -244,7 +244,7 @@ def randomImagesLoop(model_name, file_loc, base_model='inceptionV3', N_initial=1
     output_path = './results/' + model_name
     transfer_url = ip_addr + base_model + '/transfer'
     inference_url = ip_addr + base_model + '/predict'
-    status_url = ip_addr + 'tasks/info'
+    status_url = ip_addr + '/tasks/info'
 
     class_names, file_names = loadDirectory('./' + file_loc + '/train/')
     validate_class_names, validate_file_names = loadDirectory('./' +
