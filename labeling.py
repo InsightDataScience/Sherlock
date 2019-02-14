@@ -165,7 +165,7 @@ def chooseN(file_dict, n):
 
 def multiModelUpload(model_name, base_model='inceptionV3', nInitial=20,
          iterations=5, labelsPerRound=10, bucket='insightai2019',
-         ip_addr='http:127.0.0.1:3031'):
+         ip_addr='http://127.0.0.1:3031/'):
     class_names, file_names = loadDirectory('./' + model_name + '/train/')
     validate_class_names, validate_file_names = loadDirectory('./' +
                                                              model_name + '/val/')
@@ -182,6 +182,13 @@ def multiModelTrain(model_name, iterations=5):
         r = trainNewModel(mn)
 
 
+def computeAccuracy(predictions,class_name):
+    res = predictions[class_name]
+    correct = sum(res[x]['data']['prediction'][0]['label'] == class_name
+                  for x in range(len(res)))
+    return float(correct) / len(res)
+
+        
 def feature_extraction(file_names,your_model):
     feature_list = []
     for f in file_names:
@@ -210,13 +217,43 @@ def pickPoints(unlabeledFeatures, model, n,labeledFeatures=[]):
         labeledFeatures = [unlabeledFeatures[0]]
         labels.append(0)
         n = n - 1
+
+    indices, values = pairwise_distances_argmin_min(unlabeledFeatures,
+                                                        labeledFeatures)
     for i in range(n):
+        
         indices, values = pairwise_distances_argmin_min(unlabeledFeatures,
                                                         labeledFeatures)
         maxOfMin = np.argmax(values)
         labeledFeatures.append(unlabeledFeatures[maxOfMin])
         labels.append(maxOfMin)
         print maxOfMin, values[maxOfMin]
+    return labels 
+
+
+def pickPointsFaster(unlabeledFeatures, model, n,labeledFeatures=[]):
+    from sklearn.metrics import pairwise_distances_argmin_min
+    from sklearn.metrics.pairwise  import euclidean_distances as ed
+    labels = []
+    if len(labeledFeatures) == 0:
+        labeledFeatures = [unlabeledFeatures[0]]
+        labels.append(0)
+        n = n - 1
+
+    indices, values = pairwise_distances_argmin_min(unlabeledFeatures,
+                                                        labeledFeatures)
+    for i in range(n):
+        
+        maxOfMin = np.argmax(values)
+        printme = values[maxOfMin]
+        labeledFeatures.append(unlabeledFeatures[maxOfMin])
+        labels.append(maxOfMin)
+        indices, valuesNew = pairwise_distances_argmin_min(unlabeledFeatures,
+                                                        [labeledFeatures[-1]])
+        for j in range(len(unlabeledFeatures)):
+            if valuesNew[j] < values[j]:
+                values[j] = valuesNew[j]
+        print i, maxOfMin, printme
     return labels 
 
 
@@ -239,12 +276,12 @@ def cluster_label(file_names,your_model,n):
 
 
 def randomImagesLoop(model_name, file_loc, base_model='inceptionV3', N_initial=100,
-                     bucket='insightai2019', ip_addr='http:127.0.0.1:3031'):
+                     bucket='insightai2019', ip_addr='http://127.0.0.1:3031/'):
     #main body for running random 
     output_path = './results/' + model_name
     transfer_url = ip_addr + base_model + '/transfer'
     inference_url = ip_addr + base_model + '/predict'
-    status_url = ip_addr + '/tasks/info'
+    status_url = ip_addr + 'tasks/info'
 
     class_names, file_names = loadDirectory('./' + file_loc + '/train/')
     validate_class_names, validate_file_names = loadDirectory('./' +
@@ -273,15 +310,21 @@ def randomImagesLoop(model_name, file_loc, base_model='inceptionV3', N_initial=1
 
 
 def nonRandomImagesLoop(model_name, file_loc, base_model='inceptionV3', N_initial=100,
-                     bucket='insightai2019', ip_addr='http:127.0.0.1:3031'):
-    model_name = 'HotWineBike1kRandom'
+                     bucket='insightai2019', ip_addr='http://127.0.0.1:3031'):
+    model_name = 'HotWineBike300'
+    file_loc = 'HotWineBike'
+    base_model = 'inceptionV3'
+    N_initial = 300
+    bucket = 'insightai2019'
+    ip_addr='http://127.0.0.1:3031/'
+    
     output_path = './results/' + model_name
     transfer_url = ip_addr + base_model + '/transfer'
     inference_url = ip_addr + base_model + '/predict'
     status_url = ip_addr + 'tasks/info'
     retrain_url=ip_addr + 'inceptionV3/retrain'
     
-    iv3 = InceptionV3(weights='imagenet',input_shape=(299,299,3))
+#    iv3 = InceptionV3(weights='imagenet',input_shape=(299,299,3))
     iv3_topless = InceptionV3(include_top=False, weights='imagenet',input_shape=(299,299,3))
     
     class_names, file_names = loadDirectory('./' + file_loc + '/train/')
@@ -294,20 +337,19 @@ def nonRandomImagesLoop(model_name, file_loc, base_model='inceptionV3', N_initia
     for k in file_names:
         file_list.extend(file_names[k])
         file_labels.extend([k] * len(file_names[k]))
+
     unlabeledFeatures = feature_extraction(file_list, iv3_topless)
-    r1000 = pickPoints(unlabeledFeatures, iv3_topless, 1000)
-    labeledFiles = [file_list[idx] for idx in r1]
-    labeledFeatures = feature_extraction(labeledFiles, iv3_topless)
+    points = pickPoints(unlabeledFeatures, iv3_topless, N_initial)
+    labeledFiles = [file_list[idx] for idx in points]
+#    labeledFeatures = feature_extraction(labeledFiles, iv3_topless)
 
     uploadDict = {k :[] for k in class_names}
-    for idx in r1:
+    for idx in points:
         uploadDict[file_labels[idx]].append(file_list[idx])
     uploadToS3(uploadDict,os.path.join('models',model_name,'train'))
     uploadToS3(validate_file_names, os.path.join('models',model_name,'val'))
     
     r = trainNewModel(model_name, bucket_name='insightai2019', path_prefix='models',
-                         url=transfer_url)
-    rRandom1k = trainNewModel(model_name, bucket_name='insightai2019', path_prefix='models',
                          url=transfer_url)
     rid = rRandom1k['task_id']
     response = requests.post(status_url,json={rid:rid})
@@ -352,7 +394,7 @@ def nonRandomImagesLoop(model_name, file_loc, base_model='inceptionV3', N_initia
     
 def main(model_name, base_model='inceptionV3', N_initial=5,
          iterations=1, labelsPerRound=5, bucket='insightai2019',
-         ip_addr='http:127.0.0.1:3031'):
+         ip_addr='http://127.0.0.1:3031/'):
 #    model_name = 'tomato_potato'
 #    model_name = 'imgnetmodel'
 #    model_name = 'imgnet2'
@@ -462,3 +504,9 @@ if __name__ == '__main__':
 
 
 #HotCatBike = 2909.00191564s: (0.8719101123595505 training acc, 0.6842105263157895 validation acc
+
+#keras
+#requests
+#boto3
+#tensorflow
+#sklearn.metrics
