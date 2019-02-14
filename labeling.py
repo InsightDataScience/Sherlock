@@ -146,6 +146,24 @@ def wait_for_training(response, t=20, t_max=900,
     return 1
 
 
+def FileDictToFlat(file_dict):
+    file_list = []
+    for class_name in file_dict:
+        file_list.extend( file_dict[class_name])
+    return file_list
+
+
+def FileListToDict(file_list):
+    file_dict = {}
+    for f in file_list:
+        class_name = f.split('/')[-2]
+        if class_name in file_dict:n
+            file_dict[class_name].append(f)
+        else:
+            file_dict[class_name] = [f]
+    return file_dict
+
+
 def magicLabel(file_names, N, reserve_dict,model='base'):
     if model == 'base':
         td = chooseNFromEachClass(file_names, N-1)
@@ -162,6 +180,10 @@ def chooseN(file_dict, n):
             ret_dict[class_name] = file_dict[class_name][:n]                         
     return ret_dict
 
+
+def randomlyChooseN(file_list, n):
+    random.seed(90210)
+    return random.sample(file_list, n)
 
 def multiModelUpload(model_name, base_model='inceptionV3', nInitial=20,
          iterations=5, labelsPerRound=10, bucket='insightai2019',
@@ -286,11 +308,12 @@ def randomImagesLoop(model_name, file_loc, base_model='inceptionV3', N_initial=1
     class_names, file_names = loadDirectory('./' + file_loc + '/train/')
     validate_class_names, validate_file_names = loadDirectory('./' +
                                                              file_loc + '/val/')
-    class_names, test_file_names = loadDirectory('./' + file_loc + '/test/')
+    test_class_names, test_file_names = loadDirectory('./' + file_loc + '/test/')
 
     train_dict = chooseN(file_names, N_initial)
 
     uploadToS3(train_dict,os.path.join('models',model_name,'train'))
+    uploadToS3(file_dict_random,os.path.join('models',model_name,'train'))    
     uploadToS3(validate_file_names, os.path.join('models',model_name,'val'))
     
     r = trainNewModel(model_name, bucket_name='insightai2019', path_prefix='models',
