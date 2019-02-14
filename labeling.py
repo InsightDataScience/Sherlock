@@ -157,7 +157,7 @@ def FileListToDict(file_list):
     file_dict = {}
     for f in file_list:
         class_name = f.split('/')[-2]
-        if class_name in file_dict:n
+        if class_name in file_dict:
             file_dict[class_name].append(f)
         else:
             file_dict[class_name] = [f]
