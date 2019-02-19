@@ -5,6 +5,8 @@ Sherlock is currently serving as RESTful APIs.
 
 - [Sherlock for NLP](#sherlock-for-nlp)
 
+[Here](http://bit.ly/sherlock-nlp) are the slides for Sherlock NLP 
+
 
 [Here](http://bit.ly/michaniki_demo) are the slides for project Sherlock (previously called Michaniki).
 
