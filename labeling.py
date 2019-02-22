@@ -1,22 +1,20 @@
-import boto3
-import glob
-import requests
-import os
-import random
-import shutil
-import pickle
-import time
 import numpy as np
 from keras.models import load_model
 from keras.preprocessing import image
 from keras.applications.inception_v3 import InceptionV3, preprocess_input
 from sklearn.metrics import pairwise_distances_argmin_min
 
-    
-def labeling_priority(data_unlabeled, trained_model, data_labeled=None):
-    # order data 
-    # return array of file handlers ordered by priority
-    pass
+
+
+
+def labeling_priority(data_unlabeled, trained_model,n,method='ed',data_labeled=None):
+    if method == 'random':
+        return randomly_choose_n(data_unlabeled, n)
+    if method == 'ed':
+        unlabeled_features = feature_extraction(data_unlabeled, trained_model)
+        points = pick_points_faster(unlabeled_features, trained_model, n)
+        labeled_files = [data_unlabeled[idx] for idx in points]
+        return labeled_files
 
 
 def check_label_top_n(result, label, n=1):
@@ -49,44 +47,14 @@ def run_inference_on_dict(file_dict, model_name='base',
     return results
 
 
-def pickle_results(path,file_name,data):
-    if not os.path.exists(path):
-        os.makedirs(path)
-    f = open(os.path.join(path,file_name),'w+')
-    pickle.dump(data,f)
-    f.close()
-    return True
 
 
 
-def file_dict_to_flat(file_dict):
-    file_list = []
-    for class_name in file_dict:
-        file_list.extend( file_dict[class_name])
-    return file_list
 
-
-def file_list_to_dict(file_list):
-    file_dict = {}
-    for f in file_list:
-        class_name = f.split('/')[-2]
-        if class_name in file_dict:
-            file_dict[class_name].append(f)
-        else:
-            file_dict[class_name] = [f]
-    return file_dict
-
-
-def magic_label(file_names, N, reserve_dict,model='base'):
-    if model == 'base':
-        td = choose_n_from_each_class(file_names, N-1)
-        for k in reserve_dict:
-            td[k].append(reserve_dict[k][0])
-            del reserve_dict[k][0]
-        return td
 
 
 def choose_n(file_dict, n):
+#selects n from each class 
     ret_dict = {}
     for class_name in file_dict:
         if file_dict[class_name]:
@@ -95,6 +63,7 @@ def choose_n(file_dict, n):
 
 
 def randomly_choose_n(file_list, n):
+#randomly selects n total files
     random.seed(90210)
     return random.sample(file_list, n)
 
