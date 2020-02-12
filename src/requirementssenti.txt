@@ -24,7 +24,7 @@ cryptography==2.2.2
 cycler==0.10.0
 cython==0.29.4
 decorator==4.3.0
-Django==1.11.15
+Django==1.11.28
 docutils==0.14
 enum34==1.1.6
 envparse==0.2.0
