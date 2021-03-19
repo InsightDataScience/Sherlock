@@ -43,7 +43,7 @@ ipykernel==4.8.2
 ipython==5.7.0
 ipython-genutils==0.2.0
 itsdangerous==0.24
-Jinja2==2.10
+Jinja2==2.11.3
 jmespath==0.9.3
 jupyter-client==5.2.3
 jupyter-core==4.4.0
