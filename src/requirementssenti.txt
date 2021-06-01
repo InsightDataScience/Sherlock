@@ -93,7 +93,7 @@ termcolor==1.1.0
 tornado==5.0.2
 tqdm==4.26.0
 traitlets==4.3.2
-urllib3==1.23
+urllib3==1.26.5
 uWSGI==2.0.17
 wcwidth==0.1.7
 Werkzeug==0.14.1
