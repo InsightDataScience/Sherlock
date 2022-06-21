@@ -55,7 +55,7 @@ Markdown==2.6.11
 MarkupSafe==1.0
 matplotlib==2.2.2
 mock==2.0.0
-numpy==1.14.4
+numpy==1.22.0
 paramiko==2.4.2
 pathlib2==2.3.2
 pbr==4.0.4
